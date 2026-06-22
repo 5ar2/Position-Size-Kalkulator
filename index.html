@@ -1,0 +1,2626 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Position Size Kalkulator</title>
+<script>
+(function(){
+  var c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  var ctx = c.getContext('2d');
+  ctx.strokeStyle = '#f97316';
+  ctx.lineWidth = 3.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // kalkulator tijelo
+  ctx.beginPath();
+  ctx.roundRect(10, 6, 44, 52, 5);
+  ctx.stroke();
+
+  // display rect
+  ctx.beginPath();
+  ctx.roundRect(18, 14, 28, 10, 2);
+  ctx.stroke();
+
+  // tipke - red 1
+  ctx.beginPath(); ctx.arc(22, 36, 2.5, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(32, 36, 2.5, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(42, 36, 2.5, 0, Math.PI*2); ctx.stroke();
+
+  // tipke - red 2
+  ctx.beginPath(); ctx.arc(22, 48, 2.5, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(32, 48, 2.5, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(42, 48, 2.5, 0, Math.PI*2); ctx.stroke();
+
+  var link = document.createElement('link');
+  link.rel = 'icon';
+  link.type = 'image/png';
+  link.href = c.toDataURL('image/png');
+  document.head.appendChild(link);
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   POSITION SIZE KALKULATOR — Redesign
+   Font: IBM Plex Sans + IBM Plex Mono
+   Tema: Tamna, visok kontrast, minimalistično
+════════════════════════════════════════════════════════ */
+:root {
+  /* Pozadine */
+  --bg-primary:    #0e1117;
+  --bg-secondary:  #161b25;
+  --bg-card:       #1c2333;
+  --bg-input:      #111827;
+  --bg-hover:      #243048;
+  --border:        #2a3347;
+  --border-focus:  #4a6fa5;
+
+  /* Akcent */
+  --accent:        #f97316;
+  --accent-dim:    rgba(249,115,22,0.12);
+  --accent-glow:   rgba(249,115,22,0.06);
+
+  /* Semantičke boje */
+  --green:         #34d399;
+  --green-dim:     rgba(52,211,153,0.12);
+  --red:           #f87171;
+  --red-dim:       rgba(248,113,113,0.12);
+  --blue:          #60a5fa;
+  --yellow:        #fbbf24;
+
+  /* Tekst */
+  --text-primary:  #f1f5f9;
+  --text-secondary:#94a3b8;
+  --text-muted:    #4b5e78;
+
+  /* Geometrija */
+  --radius:        8px;
+  --radius-lg:     12px;
+  --radius-xl:     16px;
+}
+
+/* ─── Reset ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── Base ──────────────────────────────────────────── */
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 28px 16px 64px;
+  -webkit-font-smoothing: antialiased;
+}
+
+code, .mono, input.m-inp, select.m-inp, .btn-tool,
+.metric-val, .pos-size-value, .rr-ratio-badge,
+.metric-box-val, .gauge-result, .liq-max-value,
+.compact-btn, .risk-toggle-btn, .fs-btn {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── Layout ─────────────────────────────────────────── */
+.page-wrapper { max-width: 1100px; margin: 0 auto; }
+
+/* ─── Header ─────────────────────────────────────────── */
+.page-header { text-align: center; margin-bottom: 24px; }
+
+.page-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 1.5714em;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.page-title span { color: var(--accent); }
+
+.page-subtitle {
+  font-size: 0.9286em;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* ─── Toolbar ────────────────────────────────────────── */
+.toolbar {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 540px) {
+  .toolbar { justify-content: space-between; }
+  .compact-toggle-group { order: 1; flex: 1 1 100%; justify-content: center; display: flex; }
+  .font-scale-group { order: 2; flex: 1; }
+  .theme-btn { order: 3; }
+  .btn-tool.reset { order: 4; }
+}
+
+.btn-tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 0.8571em;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+.btn-tool:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+.btn-tool.load  { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.btn-tool.load:hover { background: rgba(52,211,153,0.22); }
+.btn-tool.reset { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+.btn-tool.reset:hover { background: rgba(248,113,113,0.22); }
+
+/* ─── Main Grid ──────────────────────────────────────── */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 700px) {
+  .calc-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── Cards ──────────────────────────────────────────── */
+.card, .result-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 22px 20px;
+}
+
+/* ─── Section Labels ─────────────────────────────────── */
+.section-label {
+  font-size: 0.7857em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ─── Field & Labels ─────────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+
+.field-label {
+  font-size: 0.8571em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Inputs ─────────────────────────────────────────── */
+input[type="number"].m-inp,
+input[type="text"].m-inp,
+select.m-inp {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 1em;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+input.m-inp:focus, select.m-inp:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(74,111,165,0.18);
+}
+input.m-inp::placeholder { color: var(--text-muted); font-size: 0.9286em; }
+input[type="number"].m-inp::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* ─── Input Group (prefix) ───────────────────────────── */
+.input-group { display: flex; }
+
+.input-prefix {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: var(--radius) 0 0 var(--radius);
+  padding: 9px 11px;
+  font-size: 0.9286em;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.input-group input.m-inp {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* ─── Currency Picker ────────────────────────────────── */
+.currency-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: var(--radius) 0 0 var(--radius);
+  padding: 0 11px;
+  font-size: 0.9286em;
+  color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: background 0.15s;
+  min-width: 48px;
+  justify-content: center;
+}
+.currency-btn:hover { background: var(--accent-dim); }
+.currency-btn svg { opacity: 0.6; }
+
+.currency-popup {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  min-width: 170px;
+  overflow: hidden;
+}
+.currency-popup.open { display: block; }
+
+.currency-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 0.9286em;
+  color: var(--text-secondary);
+  transition: background 0.12s, color 0.12s;
+}
+.currency-option:hover { background: var(--accent-dim); color: var(--text-primary); }
+.currency-option.active { color: var(--accent); background: var(--accent-dim); }
+
+.currency-option .cur-sym {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  width: 22px;
+  text-align: center;
+}
+.currency-option .cur-rate { font-size: 0.7857em; color: var(--text-muted); margin-left: auto; }
+.cur-divider { height: 1px; background: var(--border); }
+
+/* ─── Direction Warning ──────────────────────────────── */
+.dir-warning {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.35);
+  border-radius: var(--radius);
+  padding: 11px 14px;
+  margin-bottom: 14px;
+}
+.dir-warning.show { display: flex; }
+.dir-warning svg { color: var(--red); flex-shrink: 0; }
+.dir-warning-text { font-size: 0.9286em; line-height: 1.5; }
+.dir-warning-text strong { color: var(--red); font-size: 0.8571em; font-weight: 700; display: block; margin-bottom: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
+.dir-warning-text span { color: var(--text-secondary); }
+
+/* ─── TP Warning ──────────────────────────────────────── */
+.tp-warning {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.35);
+  border-radius: var(--radius);
+  padding: 11px 14px;
+  margin: 14px 0;
+}
+.tp-warning.show { display: flex; }
+.tp-warning svg { color: var(--red); flex-shrink: 0; }
+.tp-warning-text { font-size: 0.9286em; line-height: 1.5; }
+.tp-warning-text strong { color: var(--red); font-size: 0.8571em; font-weight: 700; display: block; margin-bottom: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
+.tp-warning-text span { color: var(--text-secondary); }
+
+/* ─── Risk Toggle (% / $) ────────────────────────────── */
+.risk-toggle { display: flex; }
+.risk-toggle-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 0.9286em;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.risk-toggle-btn:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.risk-toggle-btn:last-child  { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
+.risk-toggle-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+/* ─── Long/Short Toggle ──────────────────────────────── */
+.type-toggle { display: flex; gap: 8px; }
+.type-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.type-btn.long  { color: var(--green); }
+.type-btn.short { color: var(--red); }
+.type-btn.long.active  { background: var(--green-dim); border-color: var(--green); box-shadow: 0 0 0 3px rgba(52,211,153,0.07); }
+.type-btn.short.active { background: var(--red-dim);   border-color: var(--red);   box-shadow: 0 0 0 3px rgba(248,113,113,0.07); }
+
+/* ─── Select ─────────────────────────────────────────── */
+select.m-inp {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+select.m-inp option { background: var(--bg-card); color: var(--text-primary); }
+
+/* ─── Advanced Toggle ────────────────────────────────── */
+.advanced-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 0.9286em;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 4px;
+}
+.advanced-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.advanced-toggle .arrow { transition: transform 0.2s; margin-left: auto; }
+.advanced-toggle.open .arrow { transform: rotate(180deg); }
+
+.advanced-panel {
+  display: none;
+  margin-top: 10px;
+  padding: 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  gap: 12px;
+  flex-direction: column;
+}
+.advanced-panel.open { display: flex; }
+
+/* ─── Checkbox Row ───────────────────────────────────── */
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9286em;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.check-row input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.check-row:hover { color: var(--text-primary); }
+
+/* ─── Spinner Input ──────────────────────────────────── */
+.spinner-wrap { position: relative; display: flex; flex: 1; }
+.spinner-wrap input.m-inp { padding-right: 28px; width: 100%; }
+.spinner-btns {
+  position: absolute;
+  right: 1px; top: 1px; bottom: 1px;
+  width: 22px;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+}
+.spinner-btn {
+  flex: 1; background: var(--bg-secondary); border: none;
+  color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; transition: background 0.1s, color 0.1s; padding: 0;
+}
+.spinner-btn:first-child { border-bottom: 1px solid var(--border); border-radius: 0 calc(var(--radius) - 1px) 0 0; }
+.spinner-btn:last-child  { border-radius: 0 0 calc(var(--radius) - 1px) 0; }
+.spinner-btn:hover { background: var(--accent-dim); color: var(--accent); }
+
+/* ─── Margin Limit Warning ───────────────────────────── */
+.margin-limit-warn {
+  display: none; align-items: flex-start; gap: 8px;
+  background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.4);
+  border-radius: var(--radius); padding: 10px 13px;
+  margin: 8px 0; font-size: 0.8571em; color: var(--red); line-height: 1.5;
+}
+.margin-limit-warn svg { flex-shrink: 0; margin-top: 1px; }
+
+/* ─── Results Card ───────────────────────────────────── */
+.result-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 22px 20px;
+}
+
+/* ─── Position Size Hero ─────────────────────────────── */
+.pos-size-hero {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 18px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.pos-size-label {
+  font-size: 0.7857em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+.pos-size-value {
+  font-size: 2em;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+.pos-size-fiat {
+  font-size: 0.9286em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.pos-margin-row {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  font-size: 0.9286em;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ─── Metric Rows ────────────────────────────────────── */
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9286em;
+}
+.metric-row:last-child { border-bottom: none; }
+.metric-key   { color: var(--text-secondary); }
+.metric-val   { font-weight: 500; }
+.metric-val.accent { color: var(--accent); }
+.metric-val.red    { color: var(--red); }
+.metric-val.green  { color: var(--green); }
+
+/* ─── Sub Sections ───────────────────────────────────── */
+.sub-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-top: 14px;
+}
+.sub-section-title {
+  font-size: 0.7857em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sub-section-title svg { color: var(--accent); }
+
+/* ─── Risk Gauge ─────────────────────────────────────── */
+.gauge-wrap { margin: 8px 0 6px; }
+.gauge-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, var(--green) 0%, var(--green) 20%, var(--yellow) 35%, var(--yellow) 50%, var(--red) 70%, #7f1d1d 100%);
+  position: relative;
+  margin-bottom: 6px;
+}
+.gauge-cursor {
+  position: absolute;
+  top: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.4);
+  transform: translateX(-50%);
+  transition: left 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7857em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.gauge-result {
+  text-align: center;
+  font-size: 1.5714em;
+  font-weight: 600;
+  color: var(--green);
+}
+.gauge-desc {
+  text-align: center;
+  font-size: 0.7857em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-top: 2px;
+}
+
+/* ─── Metrics Grid ───────────────────────────────────── */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.metric-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9286em;
+}
+.metric-box-key { color: var(--text-secondary); }
+.metric-box-val { font-weight: 700; color: var(--text-primary); }
+
+/* ─── Placeholder ────────────────────────────────────── */
+.result-placeholder {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9286em;
+}
+.result-placeholder svg { margin-bottom: 12px; opacity: 0.2; }
+
+/* ─── Info Icon / Tooltip ────────────────────────────── */
+.info-wrap { display: inline-flex; align-items: center; gap: 5px; }
+.info-icon {
+  width: 15px; height: 15px; border-radius: 50%;
+  border: 1px solid var(--text-muted); color: var(--text-muted);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.7143em; font-weight: 700; cursor: help;
+  transition: border-color 0.15s, color 0.15s;
+  font-style: normal; font-family: 'IBM Plex Sans', sans-serif;
+  flex-shrink: 0;
+}
+.info-icon:hover { border-color: var(--accent); color: var(--accent); }
+
+#global-tooltip {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  width: 240px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+#global-tooltip p {
+  font-size: 0.8571em;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+#global-tooltip.visible { display: block; }
+
+/* ─── R:R Panel ──────────────────────────────────────── */
+.rr-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-top: 14px;
+  display: none;
+}
+.rr-panel.show { display: block; }
+
+.rr-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 6px;
+  font-size: 0.9286em;
+}
+.rr-loss { color: var(--red); min-width: 70px; text-align: right; }
+.rr-win  { color: var(--green); min-width: 70px; }
+.rr-ratio-badge {
+  flex: 0 0 auto;
+  padding: 5px 12px;
+  border-radius: var(--radius);
+  font-size: 1em;
+  font-weight: 700;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid rgba(249,115,22,0.3);
+}
+.rr-divider { flex: 1; height: 1px; background: var(--border); }
+
+/* ─── Font Scale Buttons ─────────────────────────────── */
+.font-scale-group {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 999px; padding: 3px 6px;
+}
+.fs-btn {
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; border-radius: 50%;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; transition: background 0.15s, color 0.15s;
+}
+.fs-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.fs-btn.active { background: var(--accent); color: #fff; }
+.fs-btn.sz1 { font-size: 11px; }
+.fs-btn.sz2 { font-size: 14px; }
+.fs-btn.sz3 { font-size: 17px; }
+
+/* ─── Theme Toggle ───────────────────────────────────── */
+.theme-btn {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 999px; width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-muted);
+  transition: all 0.15s; flex-shrink: 0;
+}
+.theme-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+
+/* ─── Font Scale body ────────────────────────────────── */
+body.fs-1 { font-size: 15px !important; }
+body.fs-2 { font-size: 17px !important; }
+body.fs-3 { font-size: 20px !important; }
+
+/* ─── Light Theme ────────────────────────────────────── */
+body.light-theme {
+  --bg-primary:   #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card:      #ffffff;
+  --bg-input:     #ffffff;
+  --bg-hover:     #e2e8f0;
+  --border:       #cbd5e1;
+  --border-focus: #4a6fa5;
+  --accent:       #ea580c;
+  --accent-dim:   rgba(234,88,12,0.1);
+  --accent-glow:  rgba(234,88,12,0.05);
+  --green:        #16a34a;
+  --green-dim:    rgba(22,163,74,0.1);
+  --red:          #dc2626;
+  --red-dim:      rgba(220,38,38,0.1);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted:   #94a3b8;
+}
+
+/* ─── Liquidation Panel ──────────────────────────────── */
+.liq-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.8571em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: border-color 0.2s, color 0.2s;
+  user-select: none;
+}
+.liq-toggle:hover { border-color: var(--accent); color: var(--text-primary); }
+.liq-toggle.open  { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-color: var(--accent); color: var(--text-primary); }
+.liq-arrow { transition: transform 0.25s; color: var(--text-muted); }
+.liq-toggle.open .liq-arrow { transform: rotate(180deg); }
+
+.liq-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent);
+  border-top: none;
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+  padding: 14px;
+  font-size: 0.9286em;
+}
+.liq-max-value {
+  font-size: 1.2857em;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: var(--radius);
+  letter-spacing: 0.02em;
+}
+.liq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.liq-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  display: flex; flex-direction: column; gap: 2px;
+  transition: border-color 0.2s;
+}
+.liq-card.active { border-color: var(--accent); background: var(--accent-dim); }
+.liq-card-lev  { font-weight: 700; color: var(--text-primary); font-size: 0.9286em; }
+.liq-card-drop { font-size: 0.8571em; }
+.liq-card-note { font-size: 0.7857em; color: var(--text-muted); margin-top: 1px; }
+.liq-safe-warn {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  font-size: 0.9286em;
+  line-height: 1.5;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.liq-safe-warn.safe   { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
+.liq-safe-warn.warn   { background: rgba(251,191,36,0.1); color: #d97706; border: 1px solid rgba(251,191,36,0.3); }
+.liq-safe-warn.danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+body.light-theme .liq-safe-warn.warn { color: #92400e; }
+
+.liq-verdict-mini {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 14px; font-size: 0.8571em; line-height: 1.45;
+  border-left: 1px solid; border-right: 1px solid; border-bottom: 1px solid;
+  border-bottom-left-radius: var(--radius); border-bottom-right-radius: var(--radius);
+}
+.liq-verdict-mini.safe   { background: var(--green-dim); color: var(--green); border-color: rgba(52,211,153,0.3); }
+.liq-verdict-mini.warn   { background: rgba(251,191,36,0.1); color: #d97706; border-color: rgba(251,191,36,0.35); }
+.liq-verdict-mini.danger { background: var(--red-dim); color: var(--red); border-color: rgba(248,113,113,0.3); }
+body.light-theme .liq-verdict-mini.warn { color: #92400e; }
+.liq-toggle.open + .liq-verdict-mini { border-radius: 0; }
+
+/* ─── Compact Mode Toggle ────────────────────────────── */
+.compact-toggle-group {
+  display: flex; align-items: center;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 999px; padding: 3px 4px; gap: 2px;
+}
+.compact-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border: none; border-radius: 999px;
+  background: none; color: var(--text-muted);
+  font-size: 0.8571em;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.compact-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.compact-btn.active { background: var(--accent); color: #fff; }
+
+/* ─── Compact Mode: Hidden ───────────────────────────── */
+body.compact-mode #liq-verdict-mini            { display: none !important; }
+body.compact-mode #adv-toggle                  { display: none !important; }
+body.compact-mode #adv-panel                   { display: none !important; }
+body.compact-mode .metric-row.row-profit       { display: none !important; }
+body.compact-mode .metric-row.row-roi          { display: none !important; }
+body.compact-mode .sub-section.section-risk-assessment { display: none !important; }
+body.compact-mode .sub-section.section-risk-metrics    { display: none !important; }
+body.compact-mode .rr-panel                    { display: none !important; }
+body.compact-mode .sub-section.section-risk-breakdown  { display: none !important; }
+body.compact-mode #fees-panel                  { display: none !important; }
+
+.compact-acc-risk-badge   { display: none; font-size: 0.8571em; color: var(--text-secondary); margin-left: 6px; }
+.compact-margin-used-badge { display: none; font-size: 0.8571em; color: var(--text-secondary); margin-left: 6px; }
+body.compact-mode .compact-acc-risk-badge    { display: inline; }
+body.compact-mode .compact-margin-used-badge { display: inline; }
+
+.compact-breakeven-row {
+  display: none;
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 6px 14px;
+  font-size: 0.9286em; color: var(--text-secondary); text-align: center; margin-top: 8px;
+}
+body.compact-mode .compact-breakeven-row { display: block; }
+
+/* ─── Upute Modal ────────────────────────────────────── */
+.upute-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.75); z-index: 10000;
+  align-items: center; justify-content: center; padding: 16px;
+}
+.upute-overlay.open { display: flex; }
+.upute-modal {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); max-width: 780px; width: 100%;
+  max-height: 90vh; display: flex; flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,.65); animation: modalIn .2s ease;
+}
+@keyframes modalIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.upute-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.upute-modal-header h2 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 1.1429em; font-weight: 700; color: var(--accent);
+  letter-spacing: .02em; display: flex; align-items: center; gap: 8px;
+}
+.upute-modal-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-secondary); padding: 5px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius); transition: background .15s, color .15s;
+}
+.upute-modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.upute-modal-body {
+  padding: 24px 28px; overflow-y: auto; flex: 1;
+  font-size: 1.1em; line-height: 1.8; color: var(--text-secondary);
+}
+.upute-md h1 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.5em; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; letter-spacing: -.01em; }
+.upute-md .subtitle { font-size: 0.88em; color: var(--text-secondary); border-left: 3px solid var(--accent); padding: 6px 12px; background: var(--accent-glow); border-radius: 0 var(--radius) var(--radius) 0; margin: 0 0 20px; line-height: 1.6; }
+.upute-md hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+.upute-md h2 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.1em; font-weight: 700; color: var(--accent); margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.upute-md h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.0em; font-weight: 700; color: var(--text-primary); margin: 18px 0 6px; }
+.upute-md h4 { font-family: 'IBM Plex Mono', monospace; font-size: 0.84em; font-weight: 600; color: var(--blue); letter-spacing: .06em; text-transform: uppercase; margin: 14px 0 5px; }
+.upute-md p  { margin: 0 0 10px; color: var(--text-secondary); }
+.upute-md ul, .upute-md ol { padding-left: 20px; margin: 6px 0 10px; }
+.upute-md li { margin-bottom: 4px; }
+.upute-md strong { color: var(--text-primary); font-weight: 600; }
+.upute-md em { color: var(--accent); font-style: normal; font-weight: 500; }
+.upute-md code { background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-family: 'IBM Plex Mono', monospace; font-size: 0.88em; color: var(--green); }
+.upute-md blockquote { border-left: 3px solid var(--yellow); background: rgba(251,191,36,0.06); margin: 10px 0; padding: 8px 14px; border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.88em; color: var(--text-muted); }
+.upute-md blockquote p { margin: 0; }
+.upute-md table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 0.88em; }
+.upute-md th { background: var(--bg-secondary); color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 0.82em; letter-spacing: .05em; text-transform: uppercase; padding: 8px 12px; text-align: left; border: 1px solid var(--border); }
+.upute-md td { padding: 7px 12px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+.upute-md tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+body.light-theme .upute-md tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+.upute-md .toc { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; font-size: 0.88em; }
+.upute-md .toc-title { font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; font-size: 0.9em; letter-spacing: .03em; text-transform: uppercase; }
+.upute-md .toc ol { margin: 0; padding-left: 16px; }
+.upute-md .toc li { margin-bottom: 3px; }
+.upute-md .toc a { color: var(--accent); text-decoration: none; }
+.upute-md .toc a:hover { text-decoration: underline; }
+.upute-modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; flex-shrink: 0; }
+.upute-modal-footer button { background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 10px 28px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.9286em; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+.upute-modal-footer button:hover { opacity: .85; }
+
+/* ─── Upute Toolbar Button ───────────────────────────── */
+.btn-tool.upute { border-color: var(--blue); color: var(--blue); background: rgba(96,165,250,0.1); }
+.btn-tool.upute:hover { background: rgba(96,165,250,0.2); }
+/* Splash screen imported from index.html */
+.intro {
+  position: fixed;
+  z-index: 30000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #161616;
+  overflow: hidden;
+  transition: top 1s ease-in-out;
+  font-family: 'Poppins', 'IBM Plex Sans', sans-serif;
+}
+
+.logo-header {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.logo-icon {
+  width: 110px;
+}
+
+.logo-icon svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.logo-text-row {
+  white-space: nowrap;
+  font-size: 3rem;
+  font-weight: 300;
+  color: #fff;
+  letter-spacing: 0.06em;
+}
+
+.ceco {
+  color: #f97316;
+}
+
+.anim-el {
+  position: relative;
+  display: inline-block;
+  bottom: -20px;
+  opacity: 0;
+}
+
+.anim-el.active {
+  bottom: 0;
+  opacity: 1;
+  transition: bottom 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.anim-el.fade {
+  bottom: 50vh;
+  opacity: 0;
+  transition: bottom 0.9s ease-in, opacity 0.5s ease-in 0.3s;
+}
+
+@media (max-width: 640px) {
+  .logo-icon { width: 82px; }
+  .logo-text-row { font-size: 2rem; }
+}
+/* End splash screen imported from index.html */
+</style>
+</head>
+<body>
+<!-- Splash screen imported from index.html -->
+<div class="intro" id="domar-splash-intro" aria-hidden="true">
+        <div class="logo-header">
+
+            <!-- Logo icon (face illustration, transparent background) -->
+            <div class="anim-el logo-icon">
+                <svg viewBox="0 0 395 446" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-79.201934,-63.570084)">
+        <g transform="matrix(0.733765,0,0,0.733765,78.898155,63.393226)">
+            <path d="M170.603,285.397C175.219,290.498 175.082,295.265 171.211,300.171C170.007,301.7 169.424,303.701 168.381,305.373C164.662,311.336 163.293,317.665 163.478,324.793C163.905,341.371 163.613,357.964 163.613,374.551L163.613,379.063C161.816,379.413 160.182,379.73 158.003,380.154C157.112,367.774 156.226,355.463 155.305,342.665C153.422,343.282 151.511,343.645 149.902,344.546C149.134,344.977 148.597,346.411 148.539,347.422C147.923,357.982 147.326,368.541 146.97,379.112C146.884,381.667 147.335,384.378 148.157,386.809C157.775,415.204 167.482,443.568 177.27,471.904C178.054,474.177 178.115,476.105 177.241,478.328C174.689,484.812 172.314,491.366 169.7,498.342C166.674,494.267 163.762,490.841 161.485,487.037C160.543,485.462 160.578,483.026 160.836,481.069C161.551,475.626 162.678,470.241 163.481,464.809C163.617,463.887 163.058,462.799 162.64,461.87C150.906,435.719 139.15,409.58 127.397,383.439C126.271,380.934 125.129,378.436 124.006,375.93C122.485,372.538 122.047,372.354 118.824,373.948C118.252,374.231 117.762,374.685 116.982,375.241C120.026,382.909 123.071,390.531 126.079,398.167C133.496,416.997 140.894,435.832 148.302,454.664C149.547,457.826 149.467,460.998 148.887,464.322C148.029,469.234 147.508,474.206 146.907,479.161C146.558,482.037 146.859,485.116 145.912,487.761C144.842,490.748 146.201,492.494 147.694,494.48C151.879,500.048 156.069,505.615 160.578,511.609C156.363,513.121 152.409,514.538 148.363,515.99C143.541,507.835 138.983,500.049 134.341,492.316C131.515,487.607 132.439,487.737 126.739,489.921C128.215,493.229 129.614,496.556 131.167,499.81C135.501,508.906 139.733,518.056 144.356,527.003C146.057,530.297 145.918,532.797 143.169,535.599C140.802,531.49 138.447,527.482 136.169,523.432C120.296,495.207 104.448,466.969 88.572,438.748C79.322,422.302 70.025,405.883 60.778,389.437C59.092,386.44 60.326,379.178 62.845,376.871C66.355,373.655 69.826,370.393 73.463,367.327C74.556,366.405 76.144,366.069 77.604,365.418C89.403,389.415 100.952,412.897 112.561,436.501C114.516,435.902 116.214,435.379 118.385,434.712C117.958,433.294 117.7,431.918 117.145,430.675C107.686,409.549 98.164,388.452 88.773,367.294C88.232,366.076 88.241,364.199 88.787,362.984C90.987,358.089 93.064,353.043 96.04,348.627C98.256,345.335 101.651,342.771 104.752,340.153C113.61,332.669 122.588,325.33 131.514,317.926C139.222,311.535 146.943,305.156 154.623,298.73C158.569,295.426 162.424,292.014 166.354,288.691C167.746,287.511 169.237,286.45 170.603,285.397ZM386.368,298.962C393.999,303.289 401.663,307.558 409.238,311.979C410.15,312.51 411.269,313.974 411.122,314.794C410.675,317.288 409.654,319.675 408.746,322.442C394.905,316.337 381.536,310.443 367.511,304.256C354.769,315.606 341.897,327.07 328.916,338.63C327.322,337.407 325.561,336.053 323.71,334.631C334.034,320.375 347.439,309.435 360.46,297.784C358.864,295.908 357.424,294.213 355.839,292.351C349.501,295.645 343.382,298.877 337.217,302.018C317.254,312.186 297.267,322.307 277.318,332.499C276.221,333.06 275.19,333.968 274.441,334.954C263.375,349.498 252.339,364.066 241.344,378.663C234.043,388.36 226.817,398.114 219.535,407.872C222.798,410.44 225.883,412.87 229.146,415.438C238.751,403.575 248.23,391.865 257.733,380.126C260.312,381.68 262.428,382.954 264.683,384.311C260.205,391.671 255.86,398.812 251.443,406.071C253.694,407.551 255.843,408.966 258.1,410.453C270.951,393.105 283.681,375.918 296.516,358.593C298.917,359.411 301.204,360.19 303.896,361.106C290.429,380.838 277.207,400.215 263.92,419.685C270.207,423.16 276.016,426.371 281.835,429.584C292.802,415.132 303.595,400.911 314.489,386.555C324.736,389.708 334.892,392.835 344.914,395.92C351.744,389.955 358.279,384.177 364.892,378.493C370.085,374.028 375.219,369.471 380.652,365.312C395.264,354.123 410.043,343.154 424.681,331.999C425.809,331.141 426.984,329.565 427.067,328.253C427.357,323.644 427.179,319.004 427.179,314.461C415.979,308.652 404.949,303.119 394.127,297.205C390.597,295.277 387.796,295.788 384.602,297.769C385.289,298.237 385.803,298.643 386.368,298.962ZM208.452,174.491C213.404,177.122 218.417,179.653 223.253,182.48C224.117,182.987 224.258,184.729 224.99,186.537C222.76,186.045 221.522,185.771 219.972,185.43C220.314,188.903 220.523,192.297 221.049,195.642C221.216,196.706 222.046,197.831 222.878,198.6C227.918,203.255 233.275,207.593 238.06,212.491C240.944,215.443 243.607,215.959 247.233,213.993C247.156,212.975 247.072,211.863 246.986,210.742C245.652,210.892 244.602,211.009 243.026,211.186C246.983,203.197 250.643,195.688 254.457,188.261C254.931,187.335 256.125,186.622 257.143,186.163C264.416,182.88 271.744,179.72 279.013,176.432C279.949,176.01 281.154,175.203 281.36,174.36C281.759,172.74 280.728,171.696 278.994,171.357C278.428,171.247 277.96,170.643 276.875,169.844C278.08,168.266 278.936,165.925 280.329,165.542C285.154,164.221 290.147,162.791 295.078,165.634C296.255,166.311 297.861,166.847 299.142,166.643C304.07,165.86 308.127,157.218 305.81,152.653C300.822,142.819 295.788,133.009 290.742,123.205C288.007,117.89 289.137,112.247 288.736,106.394L297.886,106.394C299.516,103.408 300.809,100.497 302.588,97.924C304.567,95.065 305.133,92.276 303.767,89.064C303.364,88.115 303.228,87.055 302.931,86.057C301.309,80.596 299.674,75.138 298.127,69.959C291.219,69.016 284.85,68.131 278.476,67.278C273.019,66.548 267.569,65.724 262.091,65.193C258.369,64.832 254.228,63.829 250.925,64.978C238.242,69.395 225.81,74.536 213.324,79.507C212.228,79.944 211.212,80.964 210.513,81.96C205.608,88.955 200.74,95.976 196.021,103.095C195.358,104.093 195.236,105.72 195.432,106.967C196.166,111.613 197.075,116.234 198.035,120.841C198.686,123.96 199.528,127.041 200.356,130.425C201.579,129.705 202.335,129.262 203.011,128.863C205.049,131.949 204.34,134.312 201.571,136.46C199.073,138.399 196.973,140.875 194.385,142.663C192.068,144.264 192.017,146.148 192.458,148.463C192.968,151.156 193.353,153.873 193.875,156.564C194.032,157.376 194.469,158.136 194.757,158.867C198.918,157.91 199.022,157.352 198.556,152.613C198.041,147.361 198.075,146.856 203.001,143.907C204.475,150.988 206.01,157.963 207.35,164.975C207.951,168.119 208.162,171.338 208.55,174.521L208.452,174.491ZM225.918,132.72C229.783,129.25 233.731,125.7 237.693,122.165C238.379,121.553 239.2,121.08 239.834,120.423C241.464,118.728 241.037,116.803 238.801,115.861C237.37,115.258 235.872,114.814 234.399,114.311C231.37,113.281 231.369,113.285 231.454,109.744C232.446,109.665 233.465,109.517 234.485,109.516C248.52,109.499 262.555,109.475 276.589,109.556C277.888,109.562 280.051,109.998 280.287,110.727C280.689,111.974 280.224,113.806 279.515,115.044C277.77,118.101 275.837,121.082 273.668,123.85C272.357,125.519 270.608,126.962 268.799,128.101C265.15,130.397 261.366,132.491 257.563,134.53C253.627,136.642 249.895,135.687 247.263,132.116C246.346,130.872 245.38,129.663 244.191,128.119C238.925,133.12 233.274,135.908 225.918,132.72ZM254.663,146.769L254.663,140.044C257.455,138.41 260.364,136.644 263.333,134.987C265.639,133.699 265.672,133.758 268.469,136.151C263.891,139.672 259.559,143.004 254.663,146.769ZM411.438,35.367C409.501,36.341 407.486,37.189 405.636,38.309C389.807,47.885 374.099,57.665 358.132,67.006C354.439,69.165 352.791,71.714 352.258,75.728C350.89,86.044 348.909,96.223 343.128,105.18C338.789,111.905 337.637,119.575 336.383,127.233C334.863,136.522 333.217,145.791 331.813,155.099C331.417,157.728 331.079,160.609 331.724,163.114C335.531,177.879 339.619,192.572 343.671,207.273C343.974,208.373 344.561,209.502 345.315,210.353C348.48,213.915 351.585,217.565 355.048,220.822C358.13,223.719 360.02,226.976 361.158,231.078C365.019,244.993 369.22,258.813 373.298,272.694C377.79,273.439 381.606,273.044 385.354,270.18C396.734,261.483 408.357,253.104 419.883,244.6C423.098,242.228 426.306,239.849 429.517,237.473C429.338,237.203 429.161,236.932 428.983,236.661C411.751,245.639 395.555,256.457 378.582,266.338C375.656,257.445 372.986,249.115 370.145,240.843C369.495,238.95 370.472,238.109 371.652,237.245C394.019,220.864 416.404,204.506 438.769,188.123C443.081,184.965 447.327,181.719 451.603,178.514C451.376,178.184 451.149,177.854 450.921,177.524C423.017,195.306 395.111,213.087 367.025,230.984C366.32,228.931 365.741,227.084 365.052,225.281C364.363,223.475 363.857,221.496 362.748,219.975C360.891,217.427 358.6,215.197 356.524,212.806C354.029,209.932 351.569,207.028 348.945,203.965C377.259,183.15 405.343,162.504 433.426,141.859C433.24,141.572 433.052,141.285 432.865,140.998C403.48,158.058 375.217,176.948 346.251,195.29C344.594,190.179 343.115,185.461 341.52,180.782C341.012,179.294 341.276,178.512 342.642,177.557C347.592,174.095 352.392,170.416 357.255,166.83C369.615,157.715 381.979,148.603 394.34,139.492C374.93,148.54 356.966,160.149 338.485,170.983C338.022,169.684 337.633,168.848 337.426,167.968C336.799,165.308 335.723,162.616 335.799,159.965C335.878,157.167 337.261,154.434 337.738,151.616C338.084,149.575 339.094,148.424 340.789,147.383C344.529,145.084 348.134,142.565 351.974,140.017C350.326,137.756 348.967,135.894 347.485,133.862C345.279,135.362 343.323,136.692 340.804,138.405C341.293,135.873 341.591,134.082 341.988,132.316C344.104,122.906 345.533,113.302 350.686,104.82C355.293,97.238 357.386,88.928 357.127,80.033C357.055,77.543 358.008,75.659 360.17,74.1C369.868,67.109 379.448,59.956 389.07,52.863C396.676,47.257 404.284,41.653 411.889,36.048C411.739,35.821 411.588,35.594 411.438,35.367ZM212.434,318.747C211.467,319.321 210.123,319.235 209.108,319.756C207.349,320.664 206.119,320.41 205.243,318.156C206.918,316.75 208.751,315.091 210.71,313.601C213.784,311.262 218.17,312.63 219.147,316.272C219.327,316.943 218.826,318.028 218.296,318.604C217.522,319.447 216.434,320.001 215.481,320.68C215.776,321.919 216.071,323.162 216.416,324.603C220.695,322.641 224.694,320.749 228.742,318.971C231.413,317.797 233.687,316.379 235.382,313.788C237.458,310.615 239.939,307.661 242.543,304.894C246.21,301 247.239,296.975 244.207,292.3C243.333,290.953 242.779,289.031 241.54,288.346C236.057,285.323 230.378,282.655 224.782,279.864C221.666,285.201 221.805,286.988 225.543,290.61C224.688,292.168 223.829,293.736 223.058,295.145C219.864,294.904 219.88,293.325 220.942,291.309C222.115,289.081 221.902,287.286 219.419,286.171C217.714,285.407 217.431,284.3 217.619,282.381C217.978,278.735 217.723,275.027 217.723,271.487C214.146,270.155 216.193,273.891 214.484,274.321C209.933,272.928 205.836,271.055 205.759,265.157C205.744,264.011 205.28,262.869 204.995,261.732C203.99,257.733 202.972,253.737 201.953,249.71C200.392,250 199.263,250.385 198.134,250.384C195.696,250.384 195.239,251.806 195.449,253.776C196.132,260.186 196.905,266.586 197.491,273.005C197.613,274.343 197.384,275.89 196.799,277.085C194.552,281.681 192.46,286.418 189.62,290.639C186.44,295.364 186.647,299.545 189.18,304.407C190.634,307.195 191.921,309.537 195.151,310.424C196.77,310.871 198.2,311.971 199.809,312.484C201.369,312.982 201.904,313.884 201.814,315.404C201.758,316.328 201.778,317.258 201.812,318.186C201.96,322.23 205.326,324.372 209.045,322.917C211.175,322.084 213.399,321.493 215.582,320.791C215.326,318.9 215.053,317.193 212.434,318.747ZM51.111,163.755C68.492,153.922 85.873,144.089 103.351,134.2C103.794,134.846 104.305,135.597 104.822,136.343C109.07,142.465 109.136,142.505 105.108,148.919C103.167,152.011 101.465,155.594 98.721,157.778C89.843,164.845 80.522,171.352 71.391,178.104C63.496,183.943 55.63,189.823 47.752,195.684C47.899,195.937 48.047,196.192 48.194,196.446C53.732,193.517 59.357,190.741 64.79,187.627C77.502,180.345 90.184,173.001 102.728,165.433C105.239,163.916 106.508,164.555 108.031,166.386C110.653,169.538 113.302,172.665 115.962,175.785C120.494,181.101 125.044,186.404 129.823,191.988C117.313,201.273 105.072,210.355 92.833,219.44C92.991,219.688 93.151,219.937 93.311,220.187C106.998,212.714 120.686,205.241 134.599,197.643C132.534,193.949 130.64,190.626 128.809,187.269C125.022,180.326 121.342,173.321 117.474,166.421C114.176,160.539 110.376,154.847 112.808,147.569C112.888,147.33 112.809,147.04 112.827,146.776C113.34,139.395 113.77,132.009 114.423,124.641C114.63,122.317 115.042,119.851 116.044,117.782C123.707,101.969 131.537,86.238 139.315,70.482C142.096,64.848 144.877,59.213 147.658,53.58C147.439,53.413 147.218,53.247 146.999,53.081C145.554,54.349 144.089,55.592 142.672,56.89C140.033,59.306 137.344,61.673 134.831,64.214C133.108,65.954 131.229,67.737 130.136,69.868C121.296,87.13 112.668,104.5 103.844,121.773C102.864,123.692 101.335,125.549 99.612,126.835C83.323,139.007 66.938,151.049 50.579,163.127C50.757,163.337 50.934,163.546 51.111,163.755ZM233.881,354.136C234.668,353.71 235.371,353.135 236.23,352.55C233.439,345.644 230.757,338.86 227.896,332.153C227.607,331.477 226.165,330.809 225.369,330.921C222.428,331.343 219.458,331.701 217.248,334.243C214.216,337.731 210.876,340.948 207.797,344.397C205.869,346.557 204.373,346.546 202.613,343.369C206.226,339.953 209.927,336.346 213.752,332.874C216.067,330.774 216.756,328.375 215.71,325.063C214.002,325.655 212.215,326.045 210.647,326.858C205.297,329.623 200.851,327.246 196.62,324.387C192.094,321.331 187.783,317.955 183.412,314.743C178.714,320.855 175.229,327.053 172.995,334.022C172.154,336.649 172.508,338.05 174.631,339.682C179.851,343.695 184.874,347.963 190.007,352.089C194.038,355.33 198.117,358.51 202.704,362.135L202.704,350.096C205.521,348.701 208.221,347.363 211.218,345.877C211.835,352.48 212.418,358.705 213.04,365.369C220.328,361.446 227.112,357.805 233.881,354.136ZM1.089,358.95C56.917,323.182 111.648,285.77 167.004,248.484C164.981,248.037 163.611,247.71 162.233,247.434C156.776,246.332 152.169,246.193 146.936,250.21C125.911,266.352 104.269,281.684 82.885,297.359C60.96,313.432 39.066,329.552 17.167,345.663C11.567,349.782 5.998,353.939 0.414,358.079C0.638,358.369 0.863,358.66 1.089,358.95ZM303.322,44.957C296.089,37.974 288.871,30.975 281.574,24.059C280.796,23.321 279.579,22.763 278.512,22.66C272.216,22.048 265.904,21.59 259.597,21.089C253.419,20.6 247.242,20.107 241.063,19.652C240.236,19.591 239.397,19.737 238.211,19.809C239.733,22.871 240.976,25.589 242.441,28.182C242.863,28.929 243.877,29.715 244.694,29.807C252.676,30.705 260.669,32.013 268.669,32.077C274.879,32.126 279.854,34.068 284.505,37.783C286.129,39.08 288.032,40.019 289.751,41.204C293.713,43.936 297.641,46.721 301.619,49.508C300.911,50.514 300.428,51.199 299.947,51.884C307.646,57.227 307.646,57.227 309.819,55.393C307.23,53.433 304.676,51.498 302.106,49.553C303.125,48.417 303.899,47.556 304.768,46.587C304.175,45.914 303.782,45.401 303.322,44.957ZM165.217,171.347C165.276,172.089 165.575,172.908 166.013,173.509C168.566,177.012 171.097,180.539 173.854,183.88C174.665,184.864 176.135,185.728 177.38,185.846C180.383,186.127 183.432,185.936 186.678,185.936C186.448,184.099 186.26,182.605 186.054,180.962C188.192,180.288 190.145,179.674 192.126,179.05C191.814,174.762 191.511,170.597 191.222,166.618C192.71,165.808 193.836,165.196 194.932,164.599C194.763,162.902 194.613,161.402 194.441,159.665C192.696,160.564 191.203,161.332 189.418,162.251C188.255,160.356 187.03,158.651 186.113,156.794C184.895,154.326 182.822,154.29 180.146,154.126C181.844,160.09 183.425,165.637 185.014,171.212C179.929,174.561 178.334,166.354 173.814,168.058C173.504,168.174 172.532,166.639 171.936,165.824C171.716,165.526 171.71,165.08 171.569,164.716C170.448,161.798 169.293,158.893 168.2,155.964C167.452,153.956 166.251,152.577 163.857,152.496C164.301,158.79 164.724,165.071 165.217,171.347ZM50.399,278.199C50.537,278.389 50.674,278.58 50.814,278.772C83.726,257.629 116.639,236.488 149.831,215.166C147.77,212.87 146.194,211.114 144.226,208.921C112.82,232.109 81.61,255.154 50.399,278.199ZM175.194,67.604C169.213,77.083 163.321,86.621 157.219,96.02C155.669,98.41 155.207,100.794 155.355,103.502C155.823,112.087 156.193,120.676 156.689,129.258C156.905,133.028 157.334,136.785 157.681,140.718C161.407,139.502 163.083,137.491 162.874,133.436C162.35,123.268 162.304,113.077 161.982,102.897C161.903,100.415 162.509,98.373 163.974,96.287C169.654,88.193 175.127,79.954 180.836,71.535C179.491,69.644 178.209,67.841 176.676,65.686C175.983,66.578 175.539,67.059 175.194,67.604ZM290.22,193.749C284.854,195.082 279.863,198 274.805,200.432C273.652,200.986 272.429,202.2 272.031,203.377C270.286,208.539 268.832,213.798 267.22,219.196C269.636,219.341 271.917,219.478 274.401,219.626C273.89,221.853 273.468,223.692 273.014,225.671L279.249,225.671C279.9,226.616 280.417,227.365 280.934,228.114C281.594,227.436 282.254,226.759 282.96,226.035C281.789,225.561 281.171,225.312 280.565,225.068C281.156,222.775 281.658,220.83 282.267,218.465C279.661,218.725 277.505,218.94 274.735,219.217C275.512,216.637 276.162,214.482 276.772,212.456C281.87,212.053 281.977,212.079 283.132,207.235C283.753,204.63 285.201,203.281 287.733,202.683C291.913,201.696 296.058,200.565 300.21,199.465C303.894,198.489 304.434,197.665 304.289,193.525C299.578,193.525 294.654,192.649 290.22,193.749ZM355.947,38.149C356.387,37.862 356.832,37.579 357.259,37.273C371.683,26.955 386.105,16.637 400.525,6.312C403.007,4.536 405.478,2.74 407.954,0.953C407.796,0.716 407.639,0.478 407.483,0.241C386.511,12.185 365.539,24.13 344.263,36.247C348.767,41.469 350.481,41.714 355.947,38.149ZM190.429,37.597C191.196,39.294 191.78,40.589 192.444,42.059C190.244,43.182 188.178,44.235 186.085,45.303C187.04,46.868 187.967,48.392 189.012,50.106C191.253,49.143 193.336,48.246 195.415,47.352C194.466,45.416 193.725,43.903 192.832,42.077C204.174,37.097 215.377,32.179 226.59,27.256C225.858,25.046 225.248,23.204 224.51,20.978C212.995,26.593 201.77,32.067 190.429,37.597ZM280.69,46.581C278.654,45.444 276.618,43.792 274.439,43.519C268.467,42.769 262.42,42.627 256.289,42.239C255.876,44.682 255.544,46.647 255.284,48.19C258.873,48.19 262.161,48.363 265.423,48.149C270.129,47.841 274.397,48.731 278.63,50.969C285.665,54.686 292.943,57.942 300.248,61.454C300.775,60.678 301.361,59.815 302.14,58.666C294.784,54.517 287.751,50.524 280.69,46.581ZM309.202,142.465C310.498,144.495 311.262,147.049 314.24,147.47C314.531,147.511 315.04,148.825 314.83,149.153C313.147,151.784 315.103,153.904 315.767,156.13C316.71,159.29 318.201,159.872 322.198,159.004C320.945,153.686 321.024,148.417 322.745,143.138C323.19,141.769 322.445,140.016 322.226,138.269C317.008,139.577 312.95,138.394 309.236,135.868C307.855,134.928 306.7,134.418 305.379,136.303C306.72,138.47 307.936,140.483 309.202,142.465ZM98.106,317.291C104.389,313.582 110.674,309.873 116.957,306.162C124.627,301.627 132.327,297.145 139.931,292.502C141.215,291.719 143.424,291.272 142.874,288.909C142.495,287.29 141.929,285.717 141.32,283.703C126.513,294.86 112.063,305.747 97.612,316.634C97.777,316.854 97.941,317.073 98.106,317.291ZM351.549,273.224C354.158,271.607 356.01,270.458 357.826,269.332C355.853,257.854 353.922,246.616 351.977,235.298C350.455,235.688 349.204,236.011 347.539,236.437C348.872,248.663 350.181,260.672 351.549,273.224ZM215.378,219.806C216.264,223.387 215.23,227.497 218.293,230.494C221.757,233.882 225.191,237.3 228.639,240.704C230.898,237.236 230.907,237.227 228.349,234.52C226.716,232.793 225.047,231.103 223.404,229.388C221.31,227.199 220.694,220.805 222.321,218.262C224.885,214.259 224.886,214.257 221.96,210.031C221.59,209.498 221.195,208.984 220.761,208.389C216.357,211.218 214.143,214.819 215.378,219.806ZM267.947,259.94C268.125,260.865 268.673,262.001 269.415,262.487C274.301,265.685 279.289,268.732 284.407,271.93C285.059,270.774 285.589,269.835 286.146,268.85C282.17,266.332 278.593,263.925 274.871,261.774C273.085,260.741 272.141,259.332 272.035,257.443C271.809,253.474 270.853,249.465 272.668,245.563C273.298,244.207 273.529,242.665 273.983,241.075C272.462,240.53 271.022,240.014 269.399,239.433C267.002,246.433 266.642,253.148 267.947,259.94ZM209.056,213.791C206.485,207.255 206.426,200.944 210.377,194.879C210.482,194.718 210.335,194.393 210.277,193.913C208.994,193.139 207.592,192.292 205.7,191.151C204.312,195.63 203.014,199.68 201.824,203.76C201.586,204.576 201.531,205.578 201.772,206.38C203.479,212.04 205.283,217.672 207.14,223.58C208.716,222.551 209.9,221.778 211.301,220.863C210.476,218.23 209.906,215.956 209.056,213.791ZM449.605,125.622C451.511,128.344 451.87,128.368 454.524,126.361C456.924,124.546 459.381,122.806 461.805,121.019C468.226,116.289 474.643,111.551 481.062,106.815L480.687,106.207C469.809,111.657 458.931,117.107 447.697,122.735C448.475,123.915 449.018,124.784 449.605,125.622ZM217.341,379.437C221.083,378.123 224.628,376.255 228.35,374.587C227.658,373.21 227.273,372.443 226.883,371.665C224.459,372.712 222.159,373.654 219.911,374.701C218.7,375.265 218.075,375.594 216.66,374.348C212.535,370.716 208.978,370.836 204.392,373.93C203.541,374.503 202.702,375.099 201.708,375.788C205.268,379.465 208.344,375.568 211.836,375.774C212.815,377.893 214.128,380.566 217.341,379.437ZM311.648,221.813C312.236,218.414 312.826,215.014 313.468,211.307C310.923,211.673 308.351,210.347 307.745,213.531C307.193,216.434 305.128,217.194 302.669,217.526C301.245,217.719 299.808,217.827 298.36,217.975C299.541,222.792 300.127,223.185 304.714,222.542C307.055,222.216 309.41,221.98 311.757,221.705L311.648,221.813ZM184.192,242.945C174.39,241.2 171.377,242.154 168.053,248.224C173.155,248.65 178.079,249.061 183.206,249.49C183.553,247.181 183.874,245.058 184.192,242.945ZM233.509,331.553C237.213,336.115 241.402,340.308 246.358,343.428C250.17,345.831 252.089,344.678 253.459,340.425C253.765,339.476 253.94,338.484 254.29,337.037C252.31,337.291 250.639,337.471 248.981,337.731C246.207,338.165 243.585,338.555 241.418,335.913C240.101,334.31 238.28,333.094 236.587,331.839C235.858,331.299 234.878,331.101 234.011,330.747C233.844,331.016 233.677,331.286 233.509,331.553ZM31.627,222.88C31.782,223.141 31.939,223.4 32.094,223.661C39.418,219.784 46.739,215.907 54.193,211.959C53.3,210.251 52.574,208.864 51.552,206.907C44.632,212.455 38.129,217.666 31.627,222.88ZM223.371,326.835C223.466,327.183 223.564,327.53 223.658,327.874C224.183,327.874 224.741,327.994 225.228,327.858C230.97,326.247 236.652,324.371 242.46,323.053C245.453,322.374 246.155,321.081 245.159,317.769C237.711,320.869 230.542,323.853 223.371,326.835ZM248.684,231.327C249.539,231.845 250.251,232.276 251.894,233.273C251.56,231.292 251.364,230.133 251.102,228.58C249.768,229.581 249.13,230.061 248.541,230.504C247.257,229.351 246.215,228.414 245,227.322C243.012,230.763 241.146,233.995 239.252,237.274C240.474,238.552 241.56,239.686 242.827,241.009C244.847,237.667 246.71,234.589 248.684,231.327ZM300.407,235.585C300.268,237.233 299.496,238.831 298.977,240.441C297.983,243.524 296.463,245.915 292.643,245.721C292.044,245.69 291.398,246.598 290.336,247.404C297.366,249.217 299.454,247.604 302.158,240.894C303.125,238.495 303.672,235.926 304.48,233.205C301.97,232.556 300.629,232.927 300.407,235.585ZM197.754,374.67C194.177,376.084 190.889,376.228 187.568,373.935C186.847,373.438 185.491,373.862 183.874,373.862C189.632,381.183 194.044,381.605 200.954,375.168C199.877,374.977 198.62,374.33 197.754,374.67ZM187.484,359.791C185.495,360.75 182.327,361.117 181.772,364.886C184.901,364.13 187.596,363.046 190.331,362.942C193.056,362.836 195.931,365.306 198.5,362.307C195.233,359.407 191.467,357.871 187.484,359.791ZM97.479,97.496C97.619,97.698 97.76,97.9 97.902,98.101C103.137,95.455 108.374,92.809 113.756,90.088C113.251,88.6 112.843,87.401 112.256,85.673C107.133,89.77 102.306,93.634 97.479,97.496ZM191.383,371.437C192.569,371.729 193.813,372.478 194.707,372.18C198.671,370.858 202.536,369.236 206.437,367.721C198.481,365.16 194.104,366.418 191.383,371.437ZM176.197,357.122C178.757,354.94 181.385,355.187 184.233,356.602C185.053,357.009 186.249,356.664 187.944,356.664C182.471,351.431 178.707,348.461 173.131,356.192C173.854,358.08 174.881,358.246 176.197,357.122ZM382.911,80.845C377.304,82.984 371.697,85.123 365.922,87.327C366.995,88.758 367.833,89.877 368.74,91.09C373.624,87.852 378.384,84.695 383.145,81.538C383.067,81.307 382.989,81.076 382.911,80.845ZM301.233,262.59C297.87,261.446 294.601,260.332 291.2,259.173C290.326,260.393 289.573,261.444 288.618,262.775C296.746,266.462 297.912,266.452 301.233,262.59ZM212.609,383.008C209.314,379.895 207.022,384.42 204,384.059C202.492,383.055 200.884,381.983 199.201,380.862C198.368,381.754 197.672,382.5 196.771,383.467C202.504,387.892 205.606,388.377 212.609,383.008ZM187.801,369.792C187.484,369.58 187.146,369.155 186.855,369.186C183.232,369.565 180.219,368.411 177.472,366.034C176.797,365.45 175.322,365.79 174.215,365.706C174.055,366.06 173.895,366.413 173.734,366.766C175.752,368.62 177.512,371.441 179.856,372.063C182.322,372.716 185.346,371.267 188.127,370.737C188.019,370.421 187.909,370.108 187.801,369.792ZM83.451,238.717C83.556,238.901 83.66,239.084 83.765,239.269C88.856,237.112 93.946,234.955 99.293,232.688C98.442,231.283 97.843,230.29 97.132,229.115C92.323,232.49 87.887,235.603 83.451,238.717ZM302.357,183.357C304.111,182.007 307.54,183.226 308.086,179.665C306.44,178.826 304.884,178.032 303.626,177.389C302.377,179.104 301.356,180.511 299.891,182.525C300.742,182.833 301.976,183.65 302.357,183.357ZM311.029,129.408C307.736,129.798 305.236,129.087 303.688,125.685C302.585,123.261 301.034,124.463 299.817,125.87C301.148,130.446 305.728,131.383 313.498,129.759C312.257,129.571 311.625,129.337 311.029,129.408ZM314.7,101.136C314.333,102.309 313.76,103.417 313.21,104.728C314.763,105.024 315.874,105.236 317.09,105.468C318.194,103.361 319.212,101.421 320.5,98.965C318.07,99.496 315.661,98.071 314.7,101.136ZM417.96,121.345C414.113,123.085 410.266,124.827 406.32,126.613C407.496,128.547 408.419,129.161 410.065,127.886C412.734,125.818 415.545,123.934 418.297,121.973C418.185,121.764 418.073,121.554 417.96,121.345ZM208.55,174.521C207.137,175.517 205.723,176.511 204.32,177.498C205.021,178.853 205.64,180.054 206.256,181.245C210.461,179.165 210.822,177.885 208.452,174.491L208.55,174.521ZM282.529,178.075C284.723,177.686 286.809,177.319 288.927,176.945C288.734,176.018 288.576,175.26 288.418,174.506C282.809,175.262 282.809,175.262 282.529,178.075ZM320.511,236.001C317.427,237.648 319.89,240.988 317.637,243.353C321.516,242.771 322.06,240.88 320.511,236.001ZM190.682,53.656C189.939,52.417 189.323,51.394 188.645,50.267C187.601,50.933 186.839,51.419 186.037,51.932C186.341,52.976 186.628,53.957 187.015,55.285C188.283,54.722 189.343,54.25 190.682,53.656ZM311.757,221.705L311.757,224.948C313.201,224.884 314.4,224.83 315.793,224.768C315.602,223.517 315.474,222.682 315.341,221.813L311.648,221.813L311.757,221.705Z" style="fill:white;fill-rule:nonzero;"/>
+        </g>
+    </g>
+</svg>
+            </div>
+
+            <!-- Name text -->
+            <div class="logo-text-row">
+                <span class="anim-el">Domar</span>&nbsp;<span class="anim-el ceco">Ćećo</span>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+(function() {
+  var intro = document.getElementById('domar-splash-intro') || document.querySelector('.intro');
+  var animEls = intro ? intro.querySelectorAll('.anim-el') : [];
+
+  window.addEventListener('DOMContentLoaded', function() {
+    if (!intro) return;
+
+    animEls.forEach(function(el, index) {
+      setTimeout(function() {
+        el.classList.add('active');
+      }, (index + 1) * 350);
+    });
+
+    setTimeout(function() {
+      animEls.forEach(function(el, index) {
+        setTimeout(function() {
+          el.classList.remove('active');
+          el.classList.add('fade');
+        }, index * 80);
+      });
+    }, 1600);
+
+    setTimeout(function() {
+      intro.style.top = '-100vh';
+    }, 2100);
+
+    setTimeout(function() {
+      intro.style.pointerEvents = 'none';
+      intro.setAttribute('aria-hidden', 'true');
+    }, 3200);
+  });
+})();
+</script>
+<!-- End splash screen imported from index.html -->
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><rect x="8" y="7" width="8" height="3" rx="1"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="17" x2="8" y2="17"/><line x1="12" y1="17" x2="12" y2="17"/><line x1="16" y1="17" x2="16" y2="17"/></svg>
+      Position Size <span>Kalkulator</span>
+    </div>
+    <div class="page-subtitle">Izračunaj veličinu pozicije u par koraka</div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <!-- Upute button -->
+    <button class="btn-tool upute" onclick="openUputeModal()" type="button" title="Upute za korištenje">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Upute
+    </button>
+    <!-- Compact mode toggle -->
+    <div class="compact-toggle-group" title="Kompaktni prikaz">
+      <button class="compact-btn" id="compact-btn-on" onclick="setCompactMode(true)" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="17" width="10" height="4" rx="1"/></svg>
+        Kompakt
+      </button>
+      <button class="compact-btn active" id="compact-btn-off" onclick="setCompactMode(false)" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="11" width="18" height="5" rx="1"/><rect x="3" y="19" width="18" height="2" rx="1"/></svg>
+        Normal
+      </button>
+    </div>
+    <div class="font-scale-group" title="Veličina fonta">
+      <button class="fs-btn sz1 active" id="fs-btn-1" onclick="setFontScale(1)" type="button">A</button>
+      <button class="fs-btn sz2"        id="fs-btn-2" onclick="setFontScale(2)" type="button">A</button>
+      <button class="fs-btn sz3"        id="fs-btn-3" onclick="setFontScale(3)" type="button">A</button>
+    </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" type="button" title="Promjena teme">
+      <svg id="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+      <svg id="icon-sun"  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+    <button class="btn-tool reset" onclick="resetCalc()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+      Reset
+    </button>
+  </div>
+
+  <!-- Calculator Grid -->
+  <div class="calc-grid">
+
+    <!-- LEFT: Inputs -->
+    <div class="card">
+      <div class="section-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Parametri pozicije
+      </div>
+
+      <!-- Long/Short -->
+      <div class="field">
+        <div class="field-label">Smjer</div>
+        <div class="type-toggle">
+          <button class="type-btn long active" id="btn-long" onclick="setDirection('long')">Long</button>
+          <button class="type-btn short" id="btn-short" onclick="setDirection('short')">Short</button>
+        </div>
+      </div>
+
+      <!-- Account Balance -->
+      <div class="field">
+        <div class="field-label">
+          <span class="info-wrap">
+            Account Balance
+            <span class="info-icon" data-tip="Ukupan kapital na računu kojim trgujete.">i</span>
+          </span>
+        </div>
+        <div class="input-group" style="position:relative;">
+          <button class="currency-btn" id="cur-btn" onclick="toggleCurrencyPicker(event)" type="button">
+            <span id="cur-symbol">$</span>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="currency-popup" id="cur-popup">
+            <div class="currency-option active" data-cur="USD" data-sym="$" onclick="selectCurrency(this)">
+              <span class="cur-sym">$</span><span>US Dollar</span><span class="cur-rate">USD</span>
+            </div>
+            <div class="cur-divider"></div>
+            <div class="currency-option" data-cur="EUR" data-sym="€" onclick="selectCurrency(this)">
+              <span class="cur-sym">€</span><span>Euro</span><span class="cur-rate">1€=1.08$</span>
+            </div>
+            <div class="cur-divider"></div>
+            <div class="currency-option" data-cur="HRK" data-sym="KN" onclick="selectCurrency(this)">
+              <span class="cur-sym">KN</span><span>Kuna</span><span class="cur-rate">1€=7.53KN</span>
+            </div>
+          </div>
+          <div class="spinner-wrap" style="flex:1;">
+            <input type="number" class="m-inp" id="balance" placeholder="10000" value="10000" oninput="calculate()" style="border-radius:0 var(--radius) var(--radius) 0;">
+            <div class="spinner-btns">
+              <button class="spinner-btn" onclick="spinnerStep('balance',100)" type="button">▲</button>
+              <button class="spinner-btn" onclick="spinnerStep('balance',-100)" type="button">▼</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk Per Trade -->
+      <div class="field">
+        <div class="field-label">
+          <span class="info-wrap">
+            Risk Per Trade
+            <span class="info-icon" data-tip="Koliko % ili $ kapitala riskirate na ovoj poziciji. Preporučeno: 1–3%.">i</span>
+          </span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <div class="risk-toggle">
+            <button class="risk-toggle-btn active" id="risk-pct-btn" onclick="setRiskMode('pct')">%</button>
+            <button class="risk-toggle-btn" id="risk-usd-btn" onclick="setRiskMode('usd')">$</button>
+          </div>
+          <div class="spinner-wrap">
+            <input type="number" class="m-inp" id="risk" placeholder="2" value="2" oninput="calculate()">
+            <div class="spinner-btns">
+              <button class="spinner-btn" onclick="spinnerStep('risk',0.1)" type="button">▲</button>
+              <button class="spinner-btn" onclick="spinnerStep('risk',-0.1)" type="button">▼</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Entry Price -->
+      <div class="field">
+        <div class="field-label">
+          <span class="info-wrap">
+            Entry Price
+            <span class="info-icon" data-tip="Planirana cijena po kojoj ulazite u poziciju.">i</span>
+          </span>
+        </div>
+        <div class="input-group">
+          <span class="input-prefix" id="entry-prefix">$</span>
+          <div class="spinner-wrap">
+            <input type="number" class="m-inp" id="entry" placeholder="npr. 45000" oninput="calculate()" style="border-radius:0 var(--radius) var(--radius) 0;">
+            <div class="spinner-btns">
+              <button class="spinner-btn" onclick="spinnerStep('entry',1)" type="button">▲</button>
+              <button class="spinner-btn" onclick="spinnerStep('entry',-1)" type="button">▼</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stop Loss -->
+      <div class="field">
+        <div class="field-label">
+          <span class="info-wrap">
+            Stop Loss
+            <span class="info-icon" data-tip="Cijena na kojoj zatvarate poziciju u slučaju gubitka. Za Long: ispod entry. Za Short: iznad entry.">i</span>
+          </span>
+        </div>
+        <div class="input-group">
+          <span class="input-prefix" id="sl-prefix">$</span>
+          <div class="spinner-wrap">
+            <input type="number" class="m-inp" id="stoploss" placeholder="npr. 43500" oninput="calculate()" style="border-radius:0 var(--radius) var(--radius) 0;">
+            <div class="spinner-btns">
+              <button class="spinner-btn" onclick="spinnerStep('stoploss',1)" type="button">▲</button>
+              <button class="spinner-btn" onclick="spinnerStep('stoploss',-1)" type="button">▼</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leverage -->
+      <div class="field">
+        <div class="field-label">
+          <span class="info-wrap">
+            Leverage (Opcionalno)
+            <span class="info-icon" data-tip="Poluga ne mijenja vaš stvarni rizik — samo utječe na potrebni margin.">i</span>
+          </span>
+        </div>
+        <select class="m-inp" id="leverage" onchange="toggleCustomLev(); calculate()">
+          <option value="1">1:1</option>
+          <option value="2">2:1</option>
+          <option value="5">5:1</option>
+          <option value="10">10:1</option>
+          <option value="20">20:1</option>
+          <option value="50">50:1</option>
+          <option value="100">100:1</option>
+          <option value="custom">Prilagođeno</option>
+        </select>
+        <input type="number" class="m-inp" id="custom-lev" placeholder="Unesi polugu (npr. 25)" style="display:none; margin-top:6px;" oninput="calculate()">
+
+        <!-- Liquidation toggle + panel -->
+        <div id="liq-wrapper" style="display:none; margin-top:10px;">
+          <!-- Toggle header (always visible when wrapper shown) -->
+          <div class="liq-toggle" id="liq-toggle" onclick="toggleLiqPanel()">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Analiza Likvidacije &amp; Max. Leverage
+              <span class="info-icon" data-tip="Maksimalni sigurni leverage na temelju vašeg Stop Loss-a. Točka likvidacije = 100 ÷ Leverage %. SL mora biti iznad točke likvidacije!">i</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="liq-max-value" id="liq-max-val">—</span>
+              <svg class="liq-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Verdict mini (always visible) -->
+          <div class="liq-verdict-mini" id="liq-verdict-mini" style="display:none;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:1px;" id="liq-verdict-mini-icon"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span id="liq-verdict-mini-msg"></span>
+          </div>
+
+          <!-- Collapsible body -->
+          <div class="liq-panel" id="liq-panel" style="display:none;">
+            <!-- Reference cards -->
+            <div style="margin-bottom:6px;font-size:0.78em;color:var(--text-muted);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Usporedba leverage razina</div>
+            <div class="liq-grid" id="liq-grid">
+              <!-- filled by JS -->
+            </div>
+
+            <!-- Safety verdict -->
+            <div class="liq-safe-warn" id="liq-verdict" style="display:none;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span id="liq-verdict-msg"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Options -->
+      <div class="advanced-toggle" id="adv-toggle" onclick="toggleAdvanced()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 0-14.14 0M4.93 19.07a10 10 0 0 0 14.14 0"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+        Napredne Opcije
+        <svg class="arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+
+      <div class="advanced-panel" id="adv-panel">
+        <label class="check-row">
+          <input type="checkbox" id="chk-tp" onchange="toggleTP(); calculate()">
+          Dodaj Take Profit (R:R Analiza)
+          <span class="info-icon" data-tip="Ciljana izlazna cijena za uzimanje profita. Preporučeno: 2× udaljenost Stop Lossa.">i</span>
+        </label>
+        <div id="tp-field" style="display:none;">
+          <div class="field" style="margin-top:8px; margin-bottom:0;">
+            <div class="field-label">Take Profit cijena</div>
+            <div class="input-group">
+              <span class="input-prefix" id="tp-prefix">$</span>
+              <input type="number" class="m-inp" id="takeprofit" placeholder="npr. 48000" oninput="calculate()">
+            </div>
+          </div>
+        </div>
+        <label class="check-row" style="margin-top:4px;">
+          <input type="checkbox" id="chk-fee" onchange="toggleFee(); calculate()">
+          Uključi Naknade za Trgovanje
+          <span class="info-icon" data-tip="Ukupni troškovi trejda (ulaz + izlaz) — provizije burze.">i</span>
+        </label>
+        <div id="fee-field" style="display:none;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+            <div class="field" style="margin-bottom:0;">
+              <div class="field-label">
+                Naknada %
+                <span class="info-icon" data-tip="Ukupni troškovi povratnog puta (ulaz + izlaz).">i</span>
+              </div>
+              <input type="number" class="m-inp" id="fee-pct" value="0.1" step="0.01" placeholder="0.1" oninput="calculate()">
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <div class="field-label">
+                Slippage %
+                <span class="info-icon" data-tip="Očekivana razlika između naručene i stvarne cijene izvršenja.">i</span>
+              </div>
+              <input type="number" class="m-inp" id="slip-pct" value="0.05" step="0.01" placeholder="0.05" oninput="calculate()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /LEFT -->
+
+    <!-- RIGHT: Results -->
+    <div class="result-card" id="result-panel">
+
+      <!-- Placeholder -->
+      <div id="placeholder" class="result-placeholder">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3"/><rect x="9" y="3" width="6" height="8" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+        <div>Unesi Balance, Risk, Entry i Stop Loss<br>za izračun pozicije</div>
+      </div>
+
+      <!-- Results (hidden until calculated) -->
+      <div id="results" style="display:none;">
+
+        <!-- Direction warning -->
+        <div class="dir-warning" id="dir-warning">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="dir-warning-text">
+            <strong id="dir-warning-title">Neispravna konfiguracija</strong>
+            <span id="dir-warning-msg">Stop Loss je iznad Entry cijene za Long poziciju.</span>
+          </div>
+        </div>
+
+        <!-- Take Profit warning -->
+        <div class="tp-warning" id="tp-warning">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="tp-warning-text">
+            <strong id="tp-warning-title">Neispravna konfiguracija</strong>
+            <span id="tp-warning-msg">Take Profit nije logički ispravan za odabrani smjer.</span>
+          </div>
+        </div>
+
+        <!-- Hero: Position Size -->
+        <div class="pos-size-hero" id="pos-size-hero">
+          <div class="pos-size-label">Position Size</div>
+          <div class="pos-size-value" id="r-coins">0.000000 coins</div>
+          <div class="pos-size-fiat" id="r-total">$0.00 total value</div>
+          <div class="margin-limit-warn" id="margin-limit-warn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div id="margin-limit-msg"></div>
+          </div>
+          <div class="pos-margin-row" id="r-margin">Required Margin: $0.00 @ 1:1<span class="compact-margin-used-badge" id="r-margin-used-compact"></span></div>
+          <!-- Compact: Break-even Price (only visible in compact mode) -->
+          <div class="compact-breakeven-row" id="compact-breakeven-row">Break-even Price: <span id="r-breakeven-compact">—</span></div>
+        </div>
+
+        <!-- Quick metrics -->
+        <div class="metric-row">
+          <span class="metric-key">Risk Amount:</span>
+          <span class="metric-val red" id="r-risk-amt">$0.00</span><span class="compact-acc-risk-badge" id="r-acc-risk-compact"></span>
+        </div>
+        <div class="metric-row row-profit">
+          <span class="metric-key">Profit:
+            <span class="info-icon" data-tip="Očekivani profit ako cijena dostigne Take Profit razinu. Računa se kao: Position Size × (TP − Entry).">i</span>
+          </span>
+          <span class="metric-val green" id="r-profit">—</span>
+        </div>
+        <div class="metric-row row-roi">
+          <span class="metric-key">ROI:
+            <span class="info-icon" data-tip="Povrat na uloženi kapital (Return on Investment). ROI = Profit ÷ Position Value × 100.">i</span>
+          </span>
+          <span class="metric-val green" id="r-roi">—</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-key">Risk Distance:</span>
+          <span class="metric-val" id="r-risk-dist">$0.00 (0.0%)</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-key">Position Value:</span>
+          <span class="metric-val" id="r-pos-val">$0.00</span>
+        </div>
+
+        <!-- Risk Breakdown -->
+        <div class="sub-section section-risk-breakdown">
+          <div class="sub-section-title">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Risk Breakdown
+          </div>
+          <div class="metric-row">
+            <span class="metric-key">Account Risk:</span>
+            <span class="metric-val" id="r-acc-risk">0.0%</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-key">Position Risk:</span>
+            <span class="metric-val" id="r-pos-risk">0.0%</span>
+          </div>
+          <div class="metric-row" style="border-bottom:none;">
+            <span class="metric-key">Margin Used:</span>
+            <span class="metric-val" id="r-margin-used">0.0%</span>
+          </div>
+        </div>
+
+        <!-- Risk Assessment (gauge) -->
+        <div class="sub-section section-risk-assessment">
+          <div class="sub-section-title">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Procjena Rizika
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-bar">
+              <div class="gauge-cursor" id="gauge-cursor" style="left:10%;"></div>
+            </div>
+            <div class="gauge-labels">
+              <span>0%</span><span>2%</span><span>5%</span><span>10%+</span>
+            </div>
+          </div>
+          <div class="gauge-result" id="gauge-pct">0.0%</div>
+          <div class="gauge-desc" id="gauge-desc">—</div>
+        </div>
+
+        <!-- Risk Metrics -->
+        <div class="sub-section section-risk-metrics">
+          <div class="sub-section-title">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            Risk Metrics
+          </div>
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <span class="metric-box-key">Max Losses: <span class="info-icon" data-tip="Broj uzastopnih gubitaka potrebnih da stanje padne na 50% početnog kapitala.">i</span></span>
+              <span class="metric-box-val" id="r-max-losses">—</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-box-key">Buying Power: <span class="info-icon" data-tip="Postotak ukupne kupovne moći iskorišten za trenutnu poziciju (Position Value ÷ Balance × Leverage).">i</span></span>
+              <span class="metric-box-val" id="r-buying-power">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- R:R panel (conditional) -->
+        <div class="rr-panel" id="rr-panel">
+          <div class="sub-section-title" style="margin-bottom:8px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            Risk : Reward Ratio
+          </div>
+          <div class="rr-bar-wrap">
+            <span class="rr-loss" id="rr-loss">—</span>
+            <div class="rr-divider"></div>
+            <span class="rr-ratio-badge" id="rr-badge">1:—</span>
+            <div class="rr-divider"></div>
+            <span class="rr-win" id="rr-win">—</span>
+          </div>
+          <div class="metric-row" style="margin-top:8px;">
+            <span class="metric-key">Min Win Rate:
+              <span class="info-icon" data-tip="Minimalni postotak dobitnih trejdova potreban da strategija bude profitabilna (Break-Even). Formula: 1 ÷ (1 + R:R) × 100. Primjer: R:R = 2 → Min Win Rate = 33.3%.">i</span>
+            </span>
+            <span class="metric-val" id="r-min-win-rate" style="color:var(--accent);">—</span>
+          </div>
+        </div>
+
+        <!-- After fees (conditional) -->
+        <div class="sub-section" id="fees-panel" style="display:none;">
+          <div class="sub-section-title">After Trading Costs</div>
+          <div class="metric-row">
+            <span class="metric-key">Total Fees:</span>
+            <span class="metric-val red" id="r-fees">$0.00</span>
+          </div>
+          <div class="metric-row fees-breakeven-row" style="border-bottom:none;">
+            <span class="metric-key">Break-even Price:</span>
+            <span class="metric-val" id="r-breakeven">$0.00</span>
+          </div>
+        </div>
+
+      </div><!-- /results -->
+    </div><!-- /RIGHT -->
+
+  </div><!-- /calc-grid -->
+
+</div><!-- /page-wrapper -->
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────
+var state = { direction: 'long', riskMode: 'pct', currency: 'USD' };
+
+var CURRENCIES = {
+  USD: { sym: '$',  toUSD: 1,          fromUSD: 1          },
+  EUR: { sym: '€',  toUSD: 1.08,       fromUSD: 1/1.08     },
+  HRK: { sym: 'KN', toUSD: 1.08/7.53,  fromUSD: 7.53/1.08  },
+};
+
+function curSym()       { return CURRENCIES[state.currency].sym; }
+function toUSD(v)       { return v * CURRENCIES[state.currency].toUSD; }
+function fromUSD(v)     { return v * CURRENCIES[state.currency].fromUSD; }
+
+// ─── Currency picker ──────────────────────────────────────────────────────
+function toggleCurrencyPicker(e) {
+  e.stopPropagation();
+  var popup = document.getElementById('cur-popup');
+  var isOpen = popup.classList.contains('open');
+  closeAllPopups();
+  if (!isOpen) {
+    popup.classList.add('open');
+    var r = document.getElementById('cur-btn').getBoundingClientRect();
+    popup.style.top  = (r.bottom + 4) + 'px';
+    popup.style.left = r.left + 'px';
+  }
+}
+
+function selectCurrency(el) {
+  var cur = el.getAttribute('data-cur');
+  var sym = el.getAttribute('data-sym');
+  state.currency = cur;
+  document.getElementById('cur-symbol').textContent = sym;
+  // Update all prefix spans
+  ['entry-prefix','sl-prefix','tp-prefix'].forEach(function(id){
+    var el2 = document.getElementById(id);
+    if (el2) el2.textContent = sym;
+  });
+  document.querySelectorAll('.currency-option').forEach(function(o){ o.classList.remove('active'); });
+  el.classList.add('active');
+  closeAllPopups();
+  calculate();
+}
+
+function closeAllPopups() {
+  document.querySelectorAll('.currency-popup.open').forEach(function(p){ p.classList.remove('open'); });
+}
+
+document.addEventListener('click', closeAllPopups);
+
+// ─── Direction / Risk mode ────────────────────────────────────────────────
+function setDirection(d) {
+  state.direction = d;
+  document.getElementById('btn-long').classList.toggle('active', d === 'long');
+  document.getElementById('btn-short').classList.toggle('active', d === 'short');
+  calculate();
+}
+
+function setRiskMode(m) {
+  state.riskMode = m;
+  document.getElementById('risk-pct-btn').classList.toggle('active', m === 'pct');
+  document.getElementById('risk-usd-btn').classList.toggle('active', m === 'usd');
+  document.getElementById('risk').placeholder = m === 'pct' ? '2' : '200';
+  calculate();
+}
+
+// ─── Leverage ─────────────────────────────────────────────────────────────
+function toggleCustomLev() {
+  var sel = document.getElementById('leverage').value;
+  document.getElementById('custom-lev').style.display = sel === 'custom' ? 'block' : 'none';
+}
+
+function getLeverage() {
+  var sel = document.getElementById('leverage').value;
+  if (sel === 'custom') return parseFloat(document.getElementById('custom-lev').value) || 1;
+  return parseFloat(sel) || 1;
+}
+
+// ─── Advanced panel ───────────────────────────────────────────────────────
+function toggleAdvanced() {
+  document.getElementById('adv-toggle').classList.toggle('open');
+  document.getElementById('adv-panel').classList.toggle('open');
+}
+
+function toggleTP() {
+  document.getElementById('tp-field').style.display = document.getElementById('chk-tp').checked ? 'block' : 'none';
+}
+
+function toggleFee() {
+  document.getElementById('fee-field').style.display = document.getElementById('chk-fee').checked ? 'block' : 'none';
+}
+
+// ─── Spinners ─────────────────────────────────────────────────────────────
+function spinnerStep(id, step) {
+  var el  = document.getElementById(id);
+  var val = parseFloat(el.value) || 0;
+  var nv  = Math.max(0, val + step);
+  el.value = parseFloat(nv.toFixed(8));
+  calculate();
+}
+
+// Attach wheel events after DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+  var wheels = {
+    'balance':  100,
+    'risk':     0.1,
+    'entry':    1,
+    'stoploss': 1,
+  };
+  Object.keys(wheels).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      spinnerStep(id, wheels[id] * (e.deltaY < 0 ? 1 : -1));
+    }, { passive: false });
+  });
+});
+
+// ─── Formatting ───────────────────────────────────────────────────────────
+function fmt(n, dec) {
+  dec = dec !== undefined ? dec : 2;
+  if (isNaN(n) || n === null) return '—';
+  return curSym() + n.toLocaleString('en-US', {minimumFractionDigits: dec, maximumFractionDigits: dec});
+}
+function fmtPct(n) {
+  if (isNaN(n) || n === null) return '—';
+  return n.toFixed(1) + '%';
+}
+function fmtCoins(n) {
+  if (isNaN(n) || n <= 0) return '0.000000 coins';
+  return n >= 1 ? n.toFixed(4) + ' coins' : n.toFixed(6) + ' coins';
+}
+function riskLabel(pct) {
+  if (pct < 1) return ['VRLO KONZERVATIVAN', 'var(--green)'];
+  if (pct < 2) return ['KONZERVATIVAN',      'var(--green)'];
+  if (pct < 3) return ['UMJEREN',          'var(--yellow)'];
+  if (pct < 5) return ['AGRESIVAN',        'var(--accent)'];
+  return           ['VEOMA AGRESIVAN',      'var(--red)'];
+}
+function gaugePct(pct) {
+  return Math.min((Math.min(pct,12)/12)*100, 98);
+}
+
+// ─── Reset ────────────────────────────────────────────────────────────────
+function resetCalc() {
+  ['balance','risk','entry','stoploss','custom-lev','takeprofit'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('leverage').value = '1';
+  document.getElementById('chk-tp').checked  = false;
+  document.getElementById('chk-fee').checked = false;
+  document.getElementById('tp-field').style.display  = 'none';
+  document.getElementById('fee-field').style.display = 'none';
+  toggleCustomLev();
+  setDirection('long');
+  setRiskMode('pct');
+  calculate();
+}
+
+// ─── Main calculation ─────────────────────────────────────────────────────
+function calculate() {
+  var balanceRaw = parseFloat(document.getElementById('balance').value);
+  var riskInput  = parseFloat(document.getElementById('risk').value);
+  var entryRaw   = parseFloat(document.getElementById('entry').value);
+  var slRaw      = parseFloat(document.getElementById('stoploss').value);
+  var lev        = getLeverage();
+
+  if (!balanceRaw || !riskInput || !entryRaw || !slRaw || entryRaw <= 0 || slRaw <= 0) {
+    document.getElementById('placeholder').style.display = '';
+    document.getElementById('results').style.display     = 'none';
+    return;
+  }
+
+  var balance = toUSD(balanceRaw);
+  var entry   = toUSD(entryRaw);
+  var sl      = toUSD(slRaw);
+
+  // Direction validation
+  var dirWarn  = document.getElementById('dir-warning');
+  var hero     = document.getElementById('pos-size-hero');
+  var dirError = false;
+
+  if (state.direction === 'long' && sl >= entry) {
+    document.getElementById('dir-warning-title').textContent = 'Neispravna konfiguracija — LONG';
+    document.getElementById('dir-warning-msg').textContent   =
+      'Stop Loss (' + curSym() + slRaw.toLocaleString() + ') mora biti ISPOD Entry cijene (' + curSym() + entryRaw.toLocaleString() + ') za Long poziciju.';
+    dirError = true;
+  } else if (state.direction === 'short' && sl <= entry) {
+    document.getElementById('dir-warning-title').textContent = 'Neispravna konfiguracija — SHORT';
+    document.getElementById('dir-warning-msg').textContent   =
+      'Stop Loss (' + curSym() + slRaw.toLocaleString() + ') mora biti IZNAD Entry cijene (' + curSym() + entryRaw.toLocaleString() + ') za Short poziciju.';
+    dirError = true;
+  }
+
+  dirWarn.classList.toggle('show', dirError);
+  hero.style.opacity      = dirError ? '0.35' : '1';
+  hero.style.filter       = dirError ? 'grayscale(0.6)' : 'none';
+  hero.style.pointerEvents = dirError ? 'none' : '';
+
+  document.getElementById('placeholder').style.display = 'none';
+  document.getElementById('results').style.display     = 'block';
+
+  if (dirError) {
+    document.getElementById('r-coins').textContent       = '— coins';
+    document.getElementById('r-total').textContent       = '—';
+    document.getElementById('r-margin').innerHTML      = 'Ispravi Stop Loss za prikaz margina<span class="compact-margin-used-badge" id="r-margin-used-compact"></span>';
+    document.getElementById('r-profit').textContent        = '—';
+    document.getElementById('r-roi').textContent           = '—';
+    document.getElementById('r-min-win-rate').textContent  = '—';
+    document.getElementById('r-risk-amt').textContent    = '—';
+    document.getElementById('r-risk-dist').textContent   = '—';
+    document.getElementById('r-pos-val').textContent     = '—';
+    document.getElementById('r-acc-risk').textContent    = '—';
+    document.getElementById('r-pos-risk').textContent    = '—';
+    document.getElementById('r-margin-used').textContent = '—';
+    document.getElementById('gauge-cursor').style.left   = '0%';
+    document.getElementById('gauge-pct').textContent     = '—';
+    document.getElementById('gauge-desc').textContent    = '—';
+    document.getElementById('r-max-losses').textContent  = '—';
+    document.getElementById('r-buying-power').textContent = '—';
+    document.getElementById('margin-limit-warn').style.display = 'none';
+    document.getElementById('liq-wrapper').style.display = 'none';
+    return;
+  }
+
+  // Core maths
+  var riskUSD = state.riskMode === 'pct'
+    ? balance * (riskInput / 100)
+    : toUSD(riskInput);
+
+  var riskDist = Math.abs(entry - sl);
+  if (riskDist <= 0) return;
+  var riskDistPct = (riskDist / entry) * 100;
+
+  var posCoins = riskUSD / riskDist;
+  var posValue = posCoins * entry;
+
+  var marginRequired = posValue / lev;
+  var marginUsedPct  = (marginRequired / balance) * 100;
+
+  // Margin limit check
+  var marginWarnEl  = document.getElementById('margin-limit-warn');
+  var marginWarnMsg = document.getElementById('margin-limit-msg');
+  var marginLimitHit = marginRequired > balance;
+  var displayCoins, displayValue, displayRisk;
+
+  if (marginLimitHit) {
+    var maxPosValue = balance * lev;
+    displayCoins = maxPosValue / entry;
+    displayValue = maxPosValue;
+    displayRisk  = displayCoins * riskDist;
+    marginWarnMsg.innerHTML =
+      'MARGIN LIMIT REACHED: Position ograničena na ' + fmt(fromUSD(maxPosValue)) +
+      ' @ ' + lev + ':1 | Ciljani Risk: ' + fmt(fromUSD(riskUSD)) +
+      ' → Stvarni: ' + fmt(fromUSD(displayRisk)) +
+      '<br><span style="font-size:0.7em;opacity:0.8">Povećaj Leverage za postizanje željenog Position Size-a.</span>';
+    marginWarnEl.style.display = 'flex';
+  } else {
+    displayCoins = posCoins;
+    displayValue = posValue;
+    displayRisk  = riskUSD;
+    marginWarnEl.style.display = 'none';
+  }
+
+  var accRiskPct   = (displayRisk / balance) * 100;
+  var posRiskPct   = riskDistPct;
+  var maxLosses    = Math.floor(Math.log(0.5) / Math.log(1 - accRiskPct / 100));
+  var buyingPowerPct = (displayValue / (balance * lev)) * 100;
+
+  // Render
+  // Liquidation analysis
+  updateLiqPanel(entry, sl, lev, state.direction);
+
+  document.getElementById('r-coins').textContent       = fmtCoins(displayCoins);
+  document.getElementById('r-total').textContent       = fmt(fromUSD(displayValue)) + ' total value';
+  var marginText = 'Required Margin: ' + fmt(fromUSD(marginRequired)) + ' @ ' + lev + ':1';
+  document.getElementById('r-margin').innerHTML = marginText + '<span class="compact-margin-used-badge" id="r-margin-used-compact"></span>';
+  document.getElementById('r-risk-amt').textContent    = fmt(fromUSD(displayRisk)) + (marginLimitHit ? ' (ograničeno marginom)' : '');
+  document.getElementById('r-risk-dist').textContent   = fmt(fromUSD(riskDist)) + ' (' + fmtPct(riskDistPct) + ')';
+  document.getElementById('r-pos-val').textContent     = fmt(fromUSD(displayValue));
+
+  // Profit & ROI (needs TP to be set)
+  var tpRawProfit = parseFloat(document.getElementById('takeprofit').value);
+  var tpProfit    = toUSD(tpRawProfit);
+  var tpWarning   = document.getElementById('tp-warning');
+  var tpError     = false;
+  
+  if (document.getElementById('chk-tp').checked && tpProfit && !isNaN(tpProfit)) {
+    // Validate TP is logically correct for the direction
+    if (state.direction === 'long' && tpProfit <= entry) {
+      document.getElementById('tp-warning-title').textContent = 'Neispravna konfiguracija — LONG';
+      document.getElementById('tp-warning-msg').textContent   =
+        'Take Profit (' + curSym() + tpRawProfit.toLocaleString() + ') mora biti IZNAD Entry cijene (' + curSym() + entryRaw.toLocaleString() + ') za Long poziciju.';
+      tpError = true;
+    } else if (state.direction === 'short' && tpProfit >= entry) {
+      document.getElementById('tp-warning-title').textContent = 'Neispravna konfiguracija — SHORT';
+      document.getElementById('tp-warning-msg').textContent   =
+        'Take Profit (' + curSym() + tpRawProfit.toLocaleString() + ') mora biti ISPOD Entry cijene (' + curSym() + entryRaw.toLocaleString() + ') za Short poziciju.';
+      tpError = true;
+    }
+    
+    if (tpWarning) {
+      tpWarning.classList.toggle('show', tpError);
+    }
+    
+    if (!tpError) {
+      var profit = Math.abs(tpProfit - entry) * displayCoins;
+      var roi    = (profit / displayValue) * 100;
+      document.getElementById('r-profit').textContent = '+' + fmt(fromUSD(profit));
+      document.getElementById('r-roi').textContent    = '+' + roi.toFixed(2) + '%';
+    } else {
+      document.getElementById('r-profit').textContent = '—';
+      document.getElementById('r-roi').textContent    = '—';
+    }
+  } else {
+    if (tpWarning) {
+      tpWarning.classList.remove('show');
+    }
+    document.getElementById('r-profit').textContent = '—';
+    document.getElementById('r-roi').textContent    = '—';
+  }
+  document.getElementById('r-acc-risk').textContent    = fmtPct(accRiskPct);
+  document.getElementById('r-pos-risk').textContent    = fmtPct(posRiskPct);
+  document.getElementById('r-margin-used').textContent = fmtPct(marginUsedPct);
+
+  // Compact mode inline badges
+  document.getElementById('r-acc-risk-compact').textContent    = '(' + fmtPct(accRiskPct) + ')';
+  document.getElementById('r-margin-used-compact').textContent = ' · ' + fmtPct(marginUsedPct) + ' margin';
+
+  // Gauge
+  var gaugePos = gaugePct(accRiskPct);
+  document.getElementById('gauge-cursor').style.left = gaugePos + '%';
+  document.getElementById('gauge-pct').textContent   = fmtPct(accRiskPct);
+  var labelColor = riskLabel(accRiskPct);
+  document.getElementById('gauge-desc').textContent  = labelColor[0];
+  document.getElementById('gauge-desc').style.color  = labelColor[1];
+  document.getElementById('gauge-pct').style.color   = labelColor[1];
+
+  // Metrics
+  document.getElementById('r-max-losses').textContent   = isFinite(maxLosses) ? maxLosses : '∞';
+  document.getElementById('r-buying-power').textContent = fmtPct(Math.min(buyingPowerPct, 100));
+
+  // R:R
+  var tpChecked = document.getElementById('chk-tp').checked;
+  var tpRaw     = parseFloat(document.getElementById('takeprofit').value);
+  var tp        = toUSD(tpRaw);
+  var rrPanel   = document.getElementById('rr-panel');
+  if (tpChecked && tp && !isNaN(tp) && !tpError) {
+    var reward  = Math.abs(tp - entry) * displayCoins;
+    var rrRatio = reward / displayRisk;
+    document.getElementById('rr-loss').textContent  = '-' + fmt(fromUSD(displayRisk));
+    document.getElementById('rr-win').textContent   = '+' + fmt(fromUSD(reward));
+    document.getElementById('rr-badge').textContent = '1:' + rrRatio.toFixed(2);
+    var minWinRate = (1 / (1 + rrRatio)) * 100;
+    document.getElementById('r-min-win-rate').textContent = minWinRate.toFixed(1) + '%';
+    rrPanel.classList.add('show');
+  } else {
+    rrPanel.classList.remove('show');
+    document.getElementById('r-min-win-rate').textContent = '—';
+  }
+
+  // Fees
+  var feeChecked = document.getElementById('chk-fee').checked;
+  var feesPanel  = document.getElementById('fees-panel');
+  if (feeChecked) {
+    var feePct       = (parseFloat(document.getElementById('fee-pct').value) || 0) / 100;
+    var slipPct      = (parseFloat(document.getElementById('slip-pct').value) || 0) / 100;
+    var totalFeeRate = feePct * 2 + slipPct;
+    var totalFees    = displayValue * totalFeeRate;
+    var breakevenUSD = state.direction === 'long'
+      ? entry * (1 + totalFeeRate)
+      : entry * (1 - totalFeeRate);
+    document.getElementById('r-fees').textContent      = fmt(fromUSD(totalFees));
+    document.getElementById('r-breakeven').textContent = fmt(fromUSD(breakevenUSD));
+    document.getElementById('r-breakeven-compact').textContent = fmt(fromUSD(breakevenUSD));
+    feesPanel.style.display = 'block';
+    document.getElementById('compact-breakeven-row').style.display = document.body.classList.contains('compact-mode') ? 'block' : 'none';
+  } else {
+    feesPanel.style.display = 'none';
+    document.getElementById('compact-breakeven-row').style.display = 'none';
+  }
+}
+
+// ─── Tooltip ──────────────────────────────────────────────────────────────
+var tip = document.createElement('div');
+tip.id = 'global-tooltip';
+tip.innerHTML = '<p></p>';
+document.body.appendChild(tip);
+
+document.querySelectorAll('.info-icon[data-tip]').forEach(function(icon) {
+  icon.addEventListener('mouseenter', function(e) {
+    tip.querySelector('p').textContent = this.getAttribute('data-tip');
+    tip.classList.add('visible');
+    positionTip(e, this);
+  });
+  icon.addEventListener('mousemove', function(e) { positionTip(e, this); });
+  icon.addEventListener('mouseleave', function()  { tip.classList.remove('visible'); });
+});
+
+function positionTip(e, icon) {
+  var TW = 230, TH = tip.offsetHeight || 70;
+  var r = icon.getBoundingClientRect();
+  var top  = r.top - TH - 10;
+  var left = r.left + r.width / 2 - TW / 2;
+  if (top < 8) top = r.bottom + 10;
+  if (left < 8) left = 8;
+  if (left + TW > window.innerWidth - 8) left = window.innerWidth - TW - 8;
+  tip.style.top  = top  + 'px';
+  tip.style.left = left + 'px';
+}
+
+// ─── Keyboard ─────────────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Backspace') { e.preventDefault(); resetCalc(); }
+});
+
+
+// ─── Font scale ───────────────────────────────────────────────────────────
+var currentFontScale = 1;
+function setFontScale(n) {
+  currentFontScale = n;
+  document.body.classList.remove('fs-1','fs-2','fs-3');
+  document.body.classList.add('fs-' + n);
+  [1,2,3].forEach(function(i){
+    document.getElementById('fs-btn-'+i).classList.toggle('active', i === n);
+  });
+  localStorage.setItem('fontScale', n);
+}
+
+// ─── Theme toggle ─────────────────────────────────────────────────────────
+var isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('light-theme', !isDark);
+  document.getElementById('icon-moon').style.display = isDark  ? '' : 'none';
+  document.getElementById('icon-sun').style.display  = !isDark ? '' : 'none';
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+// ─── Restore preferences on load ─────────────────────────────────────────
+(function restorePrefs() {
+  var savedScale = parseInt(localStorage.getItem('fontScale')) || 1;
+  var savedTheme = localStorage.getItem('theme') || 'dark';
+  setFontScale(savedScale);
+  if (savedTheme === 'light') toggleTheme();
+})();
+
+
+
+// ─── Liquidation panel toggle ─────────────────────────────────────────────
+function toggleLiqPanel() {
+  var toggle = document.getElementById('liq-toggle');
+  var panel  = document.getElementById('liq-panel');
+  var isOpen = toggle.classList.contains('open');
+  toggle.classList.toggle('open', !isOpen);
+  panel.style.display = isOpen ? 'none' : 'block';
+}
+
+// ─── Liquidation Analysis ─────────────────────────────────────────────────
+function updateLiqPanel(entry, sl, lev, direction) {
+  var wrapper = document.getElementById('liq-wrapper');
+  if (!entry || !sl || entry <= 0 || sl <= 0) {
+    wrapper.style.display = 'none';
+    document.getElementById('liq-verdict-mini').style.display = 'none';
+    return;
+  }
+  wrapper.style.display = 'block';
+
+  var slDistPct = Math.abs(entry - sl) / entry * 100;  // % SL distance from entry
+  // Max leverage where liquidation point is still BELOW SL (safety buffer 10%)
+  var maxSafeLev = Math.floor((100 / slDistPct) * 0.90);
+  if (maxSafeLev < 1) maxSafeLev = 1;
+  var liqPct = 100 / lev;  // % move to liquidation at current leverage
+
+  // Max value display
+  var maxEl = document.getElementById('liq-max-val');
+  maxEl.textContent = maxSafeLev + '×';
+  // Color based on how close current lev is to max
+  var ratio = lev / maxSafeLev;
+  if (ratio <= 0.5)      { maxEl.style.color = 'var(--green)';  maxEl.style.background = 'var(--green-dim)'; }
+  else if (ratio <= 0.8) { maxEl.style.color = '#ca8a04';       maxEl.style.background = 'rgba(234,179,8,0.12)'; }
+  else                   { maxEl.style.color = 'var(--red)';    maxEl.style.background = 'var(--red-dim)'; }
+
+  // Reference cards
+  var refs = [1, 2, 5, 10, 20, 50, 100];
+  var grid = document.getElementById('liq-grid');
+  grid.innerHTML = '';
+  // Show 4 most relevant: current lev + neighbors + extremes
+  var show = [];
+  refs.forEach(function(r) { if (Math.abs(Math.log(r) - Math.log(lev)) < 1.5 || r === 1 || r === 100) show.push(r); });
+  if (show.length > 6) show = show.slice(0, 6);
+  show.forEach(function(r) {
+    var drop = (100 / r).toFixed(1);
+    var isActive = (r === lev);
+    var isSafe = r <= maxSafeLev;
+    var col = isSafe ? 'var(--green)' : 'var(--red)';
+    var label = r <= maxSafeLev ? '✓ Sigurno' : '✗ Rizično';
+    var card = document.createElement('div');
+    card.className = 'liq-card' + (isActive ? ' active' : '');
+    card.innerHTML =
+      '<span class="liq-card-lev">' + r + '× leverage</span>' +
+      '<span class="liq-card-drop" style="color:' + col + ';">Liq. na ' + drop + '% pada</span>' +
+      '<span class="liq-card-note">' + label + (isActive ? ' ← trenutno' : '') + '</span>';
+    grid.appendChild(card);
+  });
+
+  // Verdict (inside panel + mini below toggle)
+  var verdict     = document.getElementById('liq-verdict');
+  var msg         = document.getElementById('liq-verdict-msg');
+  var mini        = document.getElementById('liq-verdict-mini');
+  var miniMsg     = document.getElementById('liq-verdict-mini-msg');
+  var miniIcon    = document.getElementById('liq-verdict-mini-icon');
+
+  var verdictClass, verdictHTML;
+  if (lev > maxSafeLev) {
+    verdictClass = 'liq-safe-warn danger';
+    verdictHTML  = '<strong>OPASNOST:</strong> Trenutni leverage (' + lev + '×) prelazi sigurni maksimum (' + maxSafeLev + '×). ' +
+      'Točka likvidacije (' + liqPct.toFixed(2) + '% od entry) je IZNAD vašeg Stop Loss-a (' + slDistPct.toFixed(2) + '%). ' +
+      'Možete biti likvidirani PRIJE nego Stop Loss zatvori poziciju!';
+  } else if (ratio > 0.75) {
+    verdictClass = 'liq-safe-warn warn';
+    verdictHTML  = '<strong>UPOZORENJE:</strong> Blizu sigurnog limita. Liq. točka je na ' + liqPct.toFixed(2) + '% od entry, ' +
+      'SL je na ' + slDistPct.toFixed(2) + '%. Buffer: ' + (slDistPct - liqPct).toFixed(2) + '%.';
+  } else {
+    verdictClass = 'liq-safe-warn safe';
+    verdictHTML  = '<strong>SIGURNO:</strong> Stop Loss (' + slDistPct.toFixed(2) + '%) je iznad točke likvidacije (' +
+      liqPct.toFixed(2) + '%). Buffer: ' + (slDistPct - liqPct).toFixed(2) + '%.';
+  }
+
+  // Full verdict inside panel
+  verdict.className     = verdictClass;
+  msg.innerHTML         = verdictHTML;
+  verdict.style.display = 'flex';
+
+  // Mini verdict below toggle header (always visible unless compact mode)
+  var miniClass = verdictClass.replace('liq-safe-warn', 'liq-verdict-mini');
+  mini.className     = miniClass;
+  miniMsg.innerHTML  = verdictHTML;
+  mini.style.display = document.body.classList.contains('compact-mode') ? 'none' : 'flex';
+
+  // Sync mini icon color with class
+  var miniIconPath = lev > maxSafeLev
+    ? '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
+    : (ratio > 0.75
+      ? '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
+      : '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>');
+  miniIcon.innerHTML = miniIconPath;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+
+// ─── Compact mode ─────────────────────────────────────────────────────────
+var isCompact = false;
+function setCompactMode(on) {
+  isCompact = on;
+  document.body.classList.toggle('compact-mode', on);
+  document.getElementById('compact-btn-on').classList.toggle('active', on);
+  document.getElementById('compact-btn-off').classList.toggle('active', !on);
+  // If fees panel is visible and we just entered compact mode, show compact breakeven
+  var feesChecked = document.getElementById('chk-fee').checked;
+  var compactBE   = document.getElementById('compact-breakeven-row');
+  if (compactBE) {
+    compactBE.style.display = (on && feesChecked) ? 'block' : 'none';
+  }
+  localStorage.setItem('compactMode', on ? '1' : '0');
+}
+
+// Restore compact mode pref
+(function() {
+  if (localStorage.getItem('compactMode') === '1') setCompactMode(true);
+})();
+
+calculate();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════════════ -->
+<style>
+/* Footer */
+.site-footer {
+  margin-top: 48px;
+  padding: 24px 16px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7857em;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+.site-footer .copyright {
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.site-footer .disclaimer {
+  max-width: 780px;
+  margin: 0 auto;
+  color: var(--text-muted);
+}
+.site-footer .disclaimer a.more-link {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: none;
+  margin-left: 2px;
+  transition: opacity .2s;
+}
+.site-footer .disclaimer a.more-link:hover {
+  opacity: .75;
+  text-decoration: underline;
+}
+
+/* Risk modal */
+.risk-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.72);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.risk-modal-overlay.open {
+  display: flex;
+}
+.risk-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  max-width: 620px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,.6);
+  animation: modalIn .2s ease;
+}
+@keyframes modalIn {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.risk-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.risk-modal-header h2 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 1.5714em;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: .03em;
+}
+.risk-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  transition: background .15s, color .15s;
+}
+.risk-modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.risk-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  font-size: 0.9971em;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  flex: 1;
+}
+.risk-modal-body p { margin-bottom: 12px; }
+.risk-modal-body p:last-child { margin-bottom: 0; }
+.risk-modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.risk-modal-footer button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 9px 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8571em;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .03em;
+  transition: opacity .2s;
+}
+.risk-modal-footer button:hover { opacity: .85; }
+</style>
+
+<!-- Footer HTML -->
+<footer class="site-footer">
+  <p class="copyright">© <span id="footer-year"></span> Domar Ćećo. Sva prava pridržana.</p>
+  <p class="disclaimer">
+    Odricanje od odgovornosti: Ovaj kalkulator služi isključivo u informativne i edukativne svrhe. Rezultati su procjene i ne predstavljaju financijski, investicijski ili trgovački savjet. Trgovanje na financijskim tržištima nosi visok rizik od gubitka kapitala. Korisnik snosi isključivu odgovornost za svoje odluke. Domar Ćećo ne može biti odgovoran za financijske gubitke koji proizlaze iz odluka o trgovanju
+    donesenih na temelju podataka prikazanih u ovoj aplikaciji.
+    <a class="more-link" id="open-risk-modal" role="button" tabindex="0">Više.</a>
+  </p>
+</footer>
+
+<!-- Upute Modal -->
+<div class="upute-overlay" id="upute-overlay" role="dialog" aria-modal="true" aria-labelledby="upute-modal-title">
+  <div class="upute-modal">
+    <div class="upute-modal-header">
+      <h2 id="upute-modal-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Upute za korištenje
+      </h2>
+      <button class="upute-modal-close" id="close-upute-modal" aria-label="Zatvori">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="upute-modal-body">
+      <div class="upute-md" id="upute-content"></div>
+    </div>
+    <div class="upute-modal-footer">
+      <button id="close-upute-footer">Zatvori</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Upute Modal ──────────────────────────────────────────────────────────
+var uputeOverlay = document.getElementById('upute-overlay');
+var uputeBuilt = false;
+
+function openUputeModal() {
+  uputeOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (!uputeBuilt) {
+    document.getElementById('upute-content').innerHTML = buildUputeHTML();
+    uputeBuilt = true;
+  }
+}
+function closeUputeModal() {
+  uputeOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('close-upute-modal').addEventListener('click', closeUputeModal);
+document.getElementById('close-upute-footer').addEventListener('click', closeUputeModal);
+uputeOverlay.addEventListener('click', function(e){ if(e.target === uputeOverlay) closeUputeModal(); });
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && uputeOverlay.classList.contains('open')) closeUputeModal();
+});
+
+function buildUputeHTML() {
+  return `
+<h1>Position Size Kalkulator</h1>
+<div class="subtitle">Kalkulator za izračun optimalne veličine pozicije pri trgovanju kriptovalutama i drugim financijskim instrumentima. Pomaže vam kontrolirati rizik na svakom trejdu i zaštititi kapital od prekomjernih gubitaka.</div>
+
+<div class="toc">
+  <div class="toc-title">📋 Sadržaj</div>
+  <ol>
+    <li><a href="#s1">Opis svih elemenata</a></li>
+    <li><a href="#s2">Kako koristiti aplikaciju — korak po korak</a></li>
+    <li><a href="#s3">Praktični primjer</a></li>
+    <li><a href="#s4">Savjeti i preporuke</a></li>
+  </ol>
+</div>
+
+<hr>
+
+<h2 id="s1">1. Opis svih elemenata</h2>
+
+<h3>1.1 Toolbar — Alatna traka</h3>
+<p>Traka s kontrolama prikaza smještena iznad kalkulatora.</p>
+
+<h4>Upute</h4>
+<p>Otvara ovaj modal s uputama za korištenje aplikacije.</p>
+
+<h4>Kompakt / Normal</h4>
+<p>Dva gumba koji mijenjaju prikaz sučelja. <strong>Kompakt</strong> — prikazuje manje polja, idealno za manje ekrane. <strong>Normal</strong> — standardni prikaz s više prostora, te prikazuje više polja. Aktivno stanje je označeno bojom.</p>
+
+<h4>Veličina fonta (A · A · A)</h4>
+<p>Tri tipke za prilagodbu veličine teksta u cijeloj aplikaciji — malo, srednje i veliko. Postavka se automatski pamti u pregledniku i ostaje aktivna pri sljedećem otvaranju.</p>
+
+<h4>Tema (🌙 / ☀️)</h4>
+<p>Prebacuje prikaz između <strong>tamne</strong> i <strong>svijetle</strong> teme sučelja. Postavka se pamti.</p>
+
+<h4>Reset</h4>
+<p>Briše sve unesene vrijednosti i vraća kalkulator na početno stanje. Koristite kada želite početi novi izračun od nule.</p>
+
+<hr>
+
+<h3>1.2 Ulazni parametri — lijeva kolona</h3>
+
+<h4>1. Smjer (Long / Short)</h4>
+<p>Odabir smjera vaše pozicije na tržištu.</p>
+<ul>
+  <li><strong>Long</strong> — kupujete s očekivanjem da će cijena <em>rasti</em>. Stop Loss mora biti <strong>ispod</strong> Entry cijene.</li>
+  <li><strong>Short</strong> — prodajete s očekivanjem da će cijena <em>padati</em>. Stop Loss mora biti <strong>iznad</strong> Entry cijene.</li>
+</ul>
+<blockquote><p>⚠️ Ako Stop Loss postavite na krivu stranu Entry cijene, kalkulator će prikazati upozorenje o neispravnoj konfiguraciji.</p></blockquote>
+
+<h4>2. Account Balance (Stanje računa)</h4>
+<p>Ukupan iznos sredstava (u odabranoj valuti) koje imate na računu za trgovanje. Na temelju njega računa se maksimalna veličina pozicije, rizik u postotku i iskorištenost margina.</p>
+<ul>
+  <li>Kliknite na simbol valute (<strong>$</strong>, <strong>€</strong>, <strong>KN</strong>) za odabir: USD, EUR (1€=1.08$), HRK (1€=7.53 KN).</li>
+  <li>Koristite strelice <strong>▲▼</strong> za brzo povećanje/smanjenje za ±100.</li>
+</ul>
+
+<h4>3. Risk Per Trade (Rizik po trejdu)</h4>
+<p>Koliko novca (u % ili $) od trenutnog stanja računa ste spremni izgubiti na ovoj poziciji ako se aktivira Stop Loss.</p>
+<ul>
+  <li>Kliknite <strong>%</strong> za unos postotka od balansa (npr. <code>2</code> = 2%).</li>
+  <li>Kliknite <strong>$</strong> za unos apsolutnog iznosa.</li>
+  <li>Koristite strelice <strong>▲▼</strong> za korekcije po ±0.1.</li>
+  <li><strong>Preporuka:</strong> 1–3% po trejdu. Iznad 5% smatra se visokim rizikom.</li>
+</ul>
+
+<h4>4. Entry Price (Cijena ulaska)</h4>
+<p>Planirana cijena po kojoj ulazite u poziciju — cijena kupnje za Long ili cijena prodaje za Short. Unesite tržišnu ili željenu limit cijenu. Koristite strelice <strong>▲▼</strong> za korekcije po ±1.</p>
+
+<h4>5. Stop Loss</h4>
+<p>Cijena na kojoj će se pozicija automatski zatvoriti u slučaju kretanja cijene protiv vas, čime se ograničava gubitak na unaprijed definirani iznos.</p>
+<ul>
+  <li>Za <strong>Long</strong>: SL mora biti <strong>ispod</strong> Entry cijene.</li>
+  <li>Za <strong>Short</strong>: SL mora biti <strong>iznad</strong> Entry cijene.</li>
+  <li>Što je SL bliži Entry, to je pozicija veća uz isti iznos rizika.</li>
+</ul>
+<blockquote><p>💡 Stop Loss uvijek postavljajte na temelju tehničke analize (ispod support razine, swing low-a itd.), a ne na temelju željenog iznosa rizika.</p></blockquote>
+
+<h4>6. Leverage — Poluga (opcionalno)</h4>
+<p>Multiplikator kapitala koji vam broker/burza stavlja na raspolaganje. <strong>Poluga ne mijenja vaš stvarni rizik u novcu</strong> — samo smanjuje iznos margina koji morate imati rezerviran.</p>
+<ul>
+  <li>Opcije: 1:1, 2:1, 5:1, 10:1, 20:1, 50:1, 100:1, ili <strong>Prilagođeno</strong> (ručni unos).</li>
+  <li>Uz leverage > 1:1 prikazuje se panel <strong>Analiza Likvidacije &amp; Max. Leverage</strong>.</li>
+</ul>
+<table>
+  <thead><tr><th>Indikator</th><th>Značenje</th></tr></thead>
+  <tbody>
+    <tr><td>🟢 Zeleno</td><td>Sigurno — SL je dovoljno daleko od točke likvidacije</td></tr>
+    <tr><td>🟡 Žuto</td><td>Upozorenje — blizu granice sigurnosti</td></tr>
+    <tr><td>🔴 Crveno</td><td>Opasno — leverage prelazi sigurni maksimum za vaš SL</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h3>1.3 Napredne opcije</h3>
+<p>Kliknite na gumb <strong>Napredne Opcije</strong> za prikaz dodatnih postavki.</p>
+
+<h4>Take Profit (R:R Analiza)</h4>
+<p>Aktivira se kvačicom <strong>"Dodaj Take Profit"</strong>. Unesite ciljanu izlaznu cijenu za uzimanje profita. Kalkulator automatski izračunava R:R omjer i minimalnu stopu pobjede.</p>
+<ul>
+  <li>Za <strong>Long</strong>: TP mora biti <strong>iznad</strong> Entry cijene.</li>
+  <li>Za <strong>Short</strong>: TP mora biti <strong>ispod</strong> Entry cijene.</li>
+  <li><strong>Preporuka:</strong> TP na minimalno 2× udaljenost SL-a (R:R ≥ 1:2).</li>
+</ul>
+<p>Kalkulator automatski provjerava je li Take Profit logički ispravan. Ako unesete TP na pogrešnoj strani (npr. Long s TP ispod Entry cijene), kalkulator će prikazati upozorenje i neće prikazati rezultate za Profit, ROI i R:R omjer dok ne ispravite vrijednost. Ovo sprječava logičke greške u kalkulacijama.</p>
+
+<h4>Naknade za Trgovanje</h4>
+<p>Aktivira se kvačicom <strong>"Uključi Naknade za Trgovanje"</strong>.</p>
+<ul>
+  <li><strong>Naknada %</strong> — provizija burze po transakciji (ulaz + izlaz). Zadano: <code>0.1%</code>.</li>
+  <li><strong>Slippage %</strong> — razlika između naručene i stvarne cijene izvršenja. Zadano: <code>0.05%</code>.</li>
+</ul>
+
+<hr>
+
+<h3>1.4 Rezultati — desna kolona</h3>
+
+<h4>Position Size — Glavna vrijednost</h4>
+<p>Najvažniji rezultat kalkulatora. Prikazuje koliko jedinica instrumenta trebate kupiti ili prodati.</p>
+<table>
+  <thead><tr><th>Prikaz</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Broj jedinica (coins)</strong></td><td>Optimalna količina za kupnju/prodaju (npr. <code>0.1333 BTC</code>)</td></tr>
+    <tr><td><strong>Total Value</strong></td><td>Ukupna novčana vrijednost pozicije</td></tr>
+    <tr><td><strong>Required Margin</strong></td><td>Iznos koji morate imati rezerviran = Position Value ÷ Leverage</td></tr>
+  </tbody>
+</table>
+
+<h4>Brze metrike</h4>
+<table>
+  <thead><tr><th>Metrika</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Risk Amount</strong></td><td>Stvarni iznos novca koji riskirate (prikazano crveno)</td></tr>
+    <tr><td><strong>Profit</strong></td><td>Očekivani profit ako cijena dostigne Take Profit razinu</td></tr>
+    <tr><td><strong>ROI</strong></td><td>Povrat na uloženi kapital: Profit ÷ Position Value × 100</td></tr>
+    <tr><td><strong>Risk Distance</strong></td><td>Razlika između Entry i Stop Loss u $ i postotku</td></tr>
+    <tr><td><strong>Position Value</strong></td><td>Ukupna tržišna vrijednost pozicije bez poluge</td></tr>
+  </tbody>
+</table>
+
+<h4>Risk Breakdown</h4>
+<table>
+  <thead><tr><th>Metrika</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Account Risk</strong></td><td>Postotak kapitala koji riskirate ovim trejdom. Cilj: 1–3%.</td></tr>
+    <tr><td><strong>Position Risk</strong></td><td>Postotak gubitka pozicije ako se aktivira SL</td></tr>
+    <tr><td><strong>Margin Used</strong></td><td>Postotak balansa rezerviran kao margin</td></tr>
+  </tbody>
+</table>
+
+<h4>Procjena Rizika — Mjerač</h4>
+<p>Vizualni indikator razine rizika na skali 0–10%+.</p>
+<table>
+  <thead><tr><th>Zona</th><th>Razina</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td>🟢 0–2%</td><td>Konzervativno</td><td>Niska razina rizika, preporučeno</td></tr>
+    <tr><td>🟡 2–5%</td><td>Umjereno</td><td>Prihvatljivo za iskusne tradere</td></tr>
+    <tr><td>🔴 5–10%+</td><td>Visoko</td><td>Nije preporučljivo, visoka opasnost</td></tr>
+  </tbody>
+</table>
+
+<h4>Risk Metrics</h4>
+<table>
+  <thead><tr><th>Metrika</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Max Losses</strong></td><td>Broj uzastopnih gubitaka da kapital padne na 50% početnog iznosa</td></tr>
+    <tr><td><strong>Buying Power</strong></td><td>Postotak ukupne kupovne moći iskorišten za ovu poziciju</td></tr>
+  </tbody>
+</table>
+
+<h4>Risk : Reward Ratio (vidljivo uz Take Profit)</h4>
+<table>
+  <thead><tr><th>Element</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Gubitak (crveno)</strong></td><td>Iznos mogućeg gubitka ako se aktivira SL</td></tr>
+    <tr><td><strong>R:R Badge</strong></td><td>Omjer rizika i nagrade, npr. <code>1:2.50</code></td></tr>
+    <tr><td><strong>Dobitak (zeleno)</strong></td><td>Očekivani profit ako cijena dostigne TP</td></tr>
+    <tr><td><strong>Min Win Rate</strong></td><td>Minimalni postotak dobitnih trejdova za profitabilnost: <code>1 ÷ (1 + R:R) × 100</code></td></tr>
+  </tbody>
+</table>
+
+<h4>After Trading Costs (vidljivo uz Naknade)</h4>
+<table>
+  <thead><tr><th>Metrika</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Total Fees</strong></td><td>Ukupni trošak provizija i slippagea (ulaz + izlaz)</td></tr>
+    <tr><td><strong>Break-even Price</strong></td><td>Cijena na kojoj niste ni u dobitku ni gubitku</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2 id="s2">2. Kako koristiti aplikaciju — korak po korak</h2>
+
+<ol>
+  <li><strong>Odaberite smjer</strong> — kliknite <em>Long</em> ili <em>Short</em>.</li>
+  <li><strong>Unesite stanje računa</strong> — upišite kapital u polje <em>Account Balance</em>. Po potrebi promijenite valutu.</li>
+  <li><strong>Definirajte rizik</strong> — odaberite mod (<strong>%</strong> ili <strong>$</strong>) i unesite koliko riskirate. Primjer: <code>2</code> u % modu = 2% od balansa.</li>
+  <li><strong>Unesite Entry Price</strong> — tržišna ili limit cijena ulaska.</li>
+  <li><strong>Unesite Stop Loss</strong> — cijena zatvaranja u slučaju gubitka. Long: SL &lt; Entry; Short: SL &gt; Entry. Ako unesete SL na pogrešnoj strani, kalkulator će prikazati upozorenje u crvenom okviru.</li>
+  <li><strong>(Opcionalno) Odaberite Leverage</strong> — provjerite Analizu Likvidacije ispod polja.</li>
+  <li><strong>(Opcionalno) Napredne Opcije</strong> — dodajte Take Profit za R:R analizu. Ako unesete Take Profit na pogrešnoj strani za odabrani smjer, kalkulator će prikazati upozorenje i neće prikazati Profit i R:R rezultate dok ne ispravite vrijednost. Dodajte i Naknade za realniji prikaz troškova.</li>
+  <li><strong>Pročitajte rezultate</strong> — <strong>Position Size</strong> je ključni podatak: toliko jedinica kupujete/prodajete.</li>
+</ol>
+
+<hr>
+
+<h2 id="s3">3. Praktični primjer</h2>
+<p>Scenarij: trgujete BTC-om, imate 10.000$ na računu i riskirate 2%.</p>
+<table>
+  <thead><tr><th>Parametar</th><th>Vrijednost</th></tr></thead>
+  <tbody>
+    <tr><td>Smjer</td><td>Long</td></tr>
+    <tr><td>Account Balance</td><td>$10,000</td></tr>
+    <tr><td>Risk Per Trade</td><td>2%</td></tr>
+    <tr><td>Entry Price</td><td>$45,000</td></tr>
+    <tr><td>Stop Loss</td><td>$43,500</td></tr>
+    <tr><td>Leverage</td><td>1:1</td></tr>
+    <tr><td>Take Profit</td><td>$48,000</td></tr>
+    <tr><td>Naknada</td><td>0.1%</td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Rezultat</th><th>Vrijednost</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Position Size</strong></td><td><strong>0.1333 BTC</strong></td></tr>
+    <tr><td>Risk Amount</td><td>$200</td></tr>
+    <tr><td>Risk Distance</td><td>$1,500 (3.33%)</td></tr>
+    <tr><td>Profit (@ TP)</td><td>$400</td></tr>
+    <tr><td>R:R omjer</td><td>1 : 2.0</td></tr>
+    <tr><td>Min Win Rate</td><td>33.3%</td></tr>
+  </tbody>
+</table>
+<p>Za 2% rizika ($200) trebate kupiti <strong>0.1333 BTC</strong>. Uz R:R 1:2, profitabilni ste i s manje od 34% dobitnih trejdova.</p>
+
+<hr>
+
+<h2 id="s4">4. Savjeti i preporuke</h2>
+
+<ul>
+  <li><strong>Nikada ne riskirajte više od 1–3% po trejdu.</strong> Uz 2% rizika trebate 35 uzastopnih gubitaka da padnete na 50% kapitala.</li>
+  <li><strong>Stop Loss postavljajte na temelju tehničke analize</strong> (ispod support razine, swing low-a), a ne na temelju željenog iznosa gubitka.</li>
+  <li><strong>Ciljajte R:R ≥ 1:2.</strong> S takvim omjerom profitabilni ste čak i ako gubite 60% trejdova.</li>
+  <li><strong>Leverage pažljivo.</strong> Poluga pojačava dobitke i gubitke. Uvijek provjerite Analizu Likvidacije.</li>
+  <li><strong>Pazite na logiku parametara:</strong> Ako kalkulator prikazuje upozorenje (crveni okvir), provjerite jesu li Stop Loss i Take Profit na ispravnoj strani Entry cijene. Za Long: SL &lt; Entry &lt; TP. Za Short: TP &lt; Entry &lt; SL.</li>
+  <li><strong>Uključite naknade</strong> za realniji prikaz, posebno kod učestalog trgovanja.</li>
+  <li><strong>Kompakt mod</strong> koristite za brzi pregled na manjim ekranima.</li>
+</ul>
+
+<hr>
+<p style="font-size:0.82em; color:var(--text-muted); text-align:center; margin-top:16px;">Kalkulator je alat za podršku pri donošenju odluka, a ne financijski savjet. Sve odluke o trgovanju donosite isključivo na vlastitu odgovornost.</p>
+  `;
+}
+</script>
+
+<!-- Risk Warning Modal -->
+<div class="risk-modal-overlay" id="risk-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="risk-modal-title">
+  <div class="risk-modal">
+    <div class="risk-modal-header">
+      <h2 id="risk-modal-title">Upozorenje o riziku</h2>
+      <button class="risk-modal-close" id="close-risk-modal" aria-label="Zatvori">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="risk-modal-body">
+      <p>Trgovanje financijskim instrumentima (uključujući CFD-ove, forex i kriptovalute) nosi visok stupanj rizika i može rezultirati gubitkom cijelog uloženog kapitala. Ovaj kalkulator veličine pozicije služi isključivo u edukativne i informativne svrhe. Ne predstavlja investicijski savjet, preporuku ni ponudu u smislu Zakona o tržištu kapitala i MiFID II direktive. Sve trgovačke odluke korisnik donosi isključivo na vlastitu odgovornost.</p>
+      <p>Informacije i izračuni pruženi putem ovog kalkulatora veličine pozicije namijenjeni su isključivo u opće informativne i edukativne svrhe. Iako nastojimo osigurati točnost izračuna, ne jamčimo potpunu preciznost, ažurnost ili potpunost podataka. Ovaj alat ne predstavlja preporuku, ponudu ili savjet za kupnju ili prodaju bilo kojeg financijskog instrumenta. Prošle performanse nisu pokazatelj budućih rezultata.</p>
+      <p>Trgovanje na financijskim tržištima (uključujući foreks, dionice, kriptovalute itd.) nosi visok stupanj rizika i može rezultirati gubitkom cijelog uloženog kapitala, a u nekim slučajevima i većim gubicima. Prije donošenja bilo kakvih trgovačkih odluka, savjetujemo vam da se posavjetujete s neovisnim, licenciranim financijskim savjetnikom i da u potpunosti razumijete rizike povezane s trgovanjem.</p>
+    </div>
+    <div class="risk-modal-footer">
+      <div class="risk-modal-suppress">
+        <label class="suppress-label">
+          <input type="checkbox" id="suppress-risk-modal">
+          <span class="suppress-custom-box"></span>
+          <span class="suppress-text">Ne prikazuj više pri pokretanju</span>
+        </label>
+      </div>
+      <button id="confirm-risk-modal">Potvrđujem da sam pročitao/la i razumijem upozorenje o riziku</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.risk-modal-footer { flex-direction: column !important; gap: 14px; align-items: center !important; }
+.risk-modal-suppress { display: flex; align-items: center; }
+.suppress-label {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  user-select: none; font-size: 0.8571em; font-family: 'IBM Plex Sans', sans-serif; color: var(--text-muted); transition: color .15s;
+}
+.suppress-label:hover { color: var(--text-secondary); }
+.suppress-label input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.suppress-custom-box {
+  width: 15px; height: 15px; border: 1px solid var(--border);
+  border-radius: 3px; background: var(--bg-input);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: border-color .15s, background .15s;
+}
+.suppress-label input:checked + .suppress-custom-box { background: var(--accent); border-color: var(--accent); }
+.suppress-custom-box::after {
+  content: ''; display: none;
+  width: 4px; height: 7px;
+  border: 2px solid #fff; border-top: none; border-left: none;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+.suppress-label input:checked + .suppress-custom-box::after { display: block; }
+</style>
+
+<script>
+document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+var STORAGE_KEY = 'riskModalSuppressed';
+var overlay    = document.getElementById('risk-modal-overlay');
+var openBtn    = document.getElementById('open-risk-modal');
+var closeBtn   = document.getElementById('close-risk-modal');
+var confirmBtn = document.getElementById('confirm-risk-modal');
+var suppressCb = document.getElementById('suppress-risk-modal');
+
+function openModal() {
+  suppressCb.checked = localStorage.getItem(STORAGE_KEY) === '1';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  localStorage.setItem(STORAGE_KEY, suppressCb.checked ? '1' : '0');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+openBtn.addEventListener('click', openModal);
+openBtn.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' ') openModal(); });
+closeBtn.addEventListener('click', closeModal);
+confirmBtn.addEventListener('click', closeModal);
+overlay.addEventListener('click', function(e){ if(e.target === overlay) closeModal(); });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+// Auto-open on startup unless suppressed
+(function() {
+  if (localStorage.getItem(STORAGE_KEY) !== '1') openModal();
+})();
+</script>
+</body>
+</html>
