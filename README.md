@@ -20,6 +20,18 @@ Kontroliraj rizik, zaštiti kapital — u samo par koraka.
 
 Position Size Kalkulator je samostalna web aplikacija koja ne zahtijeva instalaciju ni pozadinsku infrastrukturu — radi u potpunosti u pregledniku iz jedne `.html` datoteke. Osmišljena je kao brz i precizan alat koji traderima pomaže izračunati optimalnu veličinu pozicije na temelju stanja računa, definiranog rizika, cijene ulaska i stop loss razine.
 
+## 🔐 Autentičnost & Sigurnost
+
+Jedini službeni i verificirani izvor za preuzimanje ove aplikacije je ovaj GitHub repozitorij.
+Aplikacija se **ne distribuira** putem bilo kojeg drugog kanala, web stranice, foruma ili platforme treće strane.
+
+Preporučuje se provjera integriteta preuzete datoteke putem SHA-256 hash vrijednosti
+prije prvog pokretanja. Bilo kakva verzija pribavljena izvan ovog repozitorija
+ne može se smatrati sigurnom ni autentičnom.
+
+Autor ne snosi odgovornost za eventualne izmjene, ubacivanje zlonamjernog koda
+ili drugu manipulaciju datotekom koja je distribuirana putem neovlaštenih izvora.
+
 
 Name: PositionSize_kalkulator_ Domar Ceco.html
 
@@ -195,6 +207,41 @@ Iako su uloženi napori da izračuni budu točni, autor ne jamči potpunu preciz
 **Odgovornost korisnika:**
 
 Sve odluke o trgovanju korisnik donosi **isključivo na vlastitu odgovornost**. Autor — **Domar Ćećo** — ne može biti odgovoran za financijske gubitke koji proizlaze iz odluka o trgovanju donesenih na temelju podataka prikazanih u ovoj aplikaciji. Prije donošenja bilo kakvih investicijskih ili trgovačkih odluka, preporučuje se savjetovanje s neovisnim, licenciranim financijskim savjetnikom.
+
+---
+## 🔐 Jedini legitimni izvor & Integritet datoteke
+
+Jedini službeni, verificirani i autorom podržani izvor za preuzimanje ove aplikacije
+je isključivo ovaj GitHub repozitorij:
+
+**[https://github.com/5ar2/Position-Size-Kalkulator](https://github.com/5ar2/Position-Size-Kalkulator)**
+
+Autor — **Domar Ćećo** — ne distribuira ovu aplikaciju putem bilo kojeg drugog
+kanala, web stranice, foruma, grupe, platforme treće strane niti putem direktnih
+poruka. Svaka verzija pribavljena izvan navedenog repozitorija smatra se
+**neovlaštenom i potencijalno kompromitiranom**.
+
+### Provjera integriteta (SHA-256)
+
+Radi vlastite sigurnosti, preporučuje se verifikacija SHA-256 hash vrijednosti
+preuzete datoteke prije prvog pokretanja:
+
+**Windows (PowerShell):**
+\```powershell
+Get-FileHash "PositionSize_kalkulator_Domar_Ceco.html" -Algorithm SHA256
+\```
+
+**macOS / Linux:**
+\```bash
+shasum -a 256 "PositionSize_kalkulator_Domar_Ceco.html"
+\```
+
+Dobivenu vrijednost usporedi s referentnim SHA-256 hashom objavljenim u opisu
+najnovijeg [Releasea](https://github.com/5ar2/Position-Size-Kalkulator/releases).
+
+Autor ne snosi nikakvu odgovornost za štetu, gubitak podataka ili financijsku
+štetu nastalu korištenjem verzije aplikacije pribavljene izvan ovog repozitorija,
+niti za bilo kakve izmjene ili ubacivanje zlonamjernog koda od strane trećih osoba.
 
 ---
 
