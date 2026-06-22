@@ -202,5 +202,5 @@ Ova aplikacija nije open-source. Nije dopušteno kopiranje, redistribucija, modi
 ---
 
 <div align="center">
-  <sub>Napravio s ☕ i previše otvorenih trejdova — <strong>Domar Ćećo</strong></sub>
+  <sub>Napravio da nikad više ne kalkuliram ručno u 3 ujutro — <strong>Domar Ćećo</strong></sub>
 </div>
