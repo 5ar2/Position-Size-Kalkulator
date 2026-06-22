@@ -13,7 +13,8 @@ Kontroliraj rizik, zaštiti kapital — u samo par koraka.
 
 </div>
 
-# Demo https://5ar2.github.io/Position-Size-Kalkulator/
+# Demo 
+https://5ar2.github.io/Position-Size-Kalkulator/
 ---
 
 ## 📌 O projektu
