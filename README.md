@@ -13,9 +13,7 @@ Kontroliraj rizik, zaštiti kapital — u samo par koraka.
 
 </div>
 
-<div align="center">
-# [DEMO](https://5ar2.github.io/Position-Size-Kalkulator/)
-</div>
+
 ---
 
 ## 📌 O projektu
@@ -23,6 +21,9 @@ Kontroliraj rizik, zaštiti kapital — u samo par koraka.
 Position Size Kalkulator je samostalna web aplikacija koja ne zahtijeva instalaciju ni pozadinsku infrastrukturu — radi u potpunosti u pregledniku iz jedne `.html` datoteke. Osmišljena je kao brz i precizan alat koji traderima pomaže izračunati optimalnu veličinu pozicije na temelju stanja računa, definiranog rizika, cijene ulaska i stop loss razine.
 
 ---
+# [DEMO](https://5ar2.github.io/Position-Size-Kalkulator/)
+---
+
 
 ## 🖼️ Screenshots
 
