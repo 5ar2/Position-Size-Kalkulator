@@ -19,6 +19,8 @@ Kontroliraj rizik, zaštiti kapital — u samo par koraka.
 ## 📌 O projektu
 
 Position Size Kalkulator je samostalna web aplikacija koja ne zahtijeva instalaciju ni pozadinsku infrastrukturu — radi u potpunosti u pregledniku iz jedne `.html` datoteke. Osmišljena je kao brz i precizan alat koji traderima pomaže izračunati optimalnu veličinu pozicije na temelju stanja računa, definiranog rizika, cijene ulaska i stop loss razine.
+
+
 Name: PositionSize_kalkulator_ Domar Ceco.html
 SHA256: b67bf289dac075c2695b9b8bdefd812e3c891b5c0e3562b6f436f61a07c45db1
 
