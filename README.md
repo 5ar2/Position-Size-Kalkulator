@@ -100,7 +100,7 @@ Position Size Kalkulator je samostalna web aplikacija koja ne zahtijeva instalac
 
 Aplikacija ne zahtijeva instalaciju, server ni build korake.
 
-1. **Preuzmi** datoteku `position-size-kalkulator.html`
+1. **Preuzmi** datoteku `PositionSize_kalkulator_ Domar Ceco.html`
 2. **Otvori** je u bilo kojem modernom web pregledniku (Chrome, Firefox, Edge, Safari)
 3. **Počni koristiti** — sve radi lokalno, bez internetske veze (osim Google Fonts za tipografiju)
 
