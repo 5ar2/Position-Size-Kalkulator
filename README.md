@@ -22,6 +22,7 @@ Position Size Kalkulator je samostalna web aplikacija koja ne zahtijeva instalac
 
 
 Name: PositionSize_kalkulator_ Domar Ceco.html
+
 SHA256: b67bf289dac075c2695b9b8bdefd812e3c891b5c0e3562b6f436f61a07c45db1
 
 ---
