@@ -41,7 +41,7 @@ SHA256: b67bf289dac075c2695b9b8bdefd812e3c891b5c0e3562b6f436f61a07c45db1
 
 <div align="center">
   
-# >>>>>>>>>>>>[DEMO](https://5ar2.github.io/Position-Size-Kalkulator/)<<<<<<<<<<<
+# >>>>[DEMO](https://5ar2.github.io/Position-Size-Kalkulator/)<<<<
 
 </div>
 
